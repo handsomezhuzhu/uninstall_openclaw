@@ -4,7 +4,7 @@
 
 ## 中文
 
-OpenClaw / Moltbot / Clawdbot / ClawBot 的 Windows、Linux、WSL 完整卸载脚本。
+OpenClaw / Moltbot / Clawdbot 的 Windows、Linux、WSL 完整卸载脚本。
 
 这个脚本默认非常保守：
 
@@ -102,7 +102,7 @@ py -3 -m unittest discover -s tests
 
 ## English
 
-OpenClaw / Moltbot / Clawdbot / ClawBot full uninstaller for Windows, Linux, and WSL.
+OpenClaw / Moltbot / Clawdbot full uninstaller for Windows, Linux, and WSL.
 
 The script is intentionally conservative:
 

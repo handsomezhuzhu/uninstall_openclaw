@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-OpenClaw / Moltbot / Clawdbot / ClawBot full uninstaller for Windows and Linux.
+OpenClaw / Moltbot / Clawdbot full uninstaller for Windows and Linux.
 
 Default mode is DRY-RUN. Nothing is deleted unless you pass --yes.
 Run it as the same OS user that installed OpenClaw. On WSL, run it inside each WSL
@@ -50,23 +50,21 @@ KEYWORDS = (
     "openclaw",
     "moltbot",
     "clawdbot",
-    "clawbot",
     "clawd",
     "clawdock",
     "clawhub",
     "clawd",
 )
-CLI_NAMES = ("openclaw", "moltbot", "clawdbot", "clawbot")
+CLI_NAMES = ("openclaw", "moltbot", "clawdbot")
 PKG_EXACT = (
     "openclaw",
     "moltbot",
     "clawdbot",
-    "clawbot",
     "clawhub",
 )
-ENV_PREFIXES = ("OPENCLAW_", "MOLTBOT_", "CLAWDBOT_", "CLAWBOT_", "CLAWDOCK_")
+ENV_PREFIXES = ("OPENCLAW_", "MOLTBOT_", "CLAWDBOT_", "CLAWDOCK_")
 ENV_VALUE_KEYS = (
-    "OPENCLAW", "MOLTBOT", "CLAWDBOT", "CLAWBOT", "CLAWDOCK", "CLAWHUB",
+    "OPENCLAW", "MOLTBOT", "CLAWDBOT", "CLAWDOCK", "CLAWHUB",
     "STATE_DIR", "CONFIG", "WORKSPACE", "SKILL", "PLUGIN", "GATEWAY",
 )
 
@@ -170,8 +168,8 @@ MESSAGES = {
         "zh": "跳过危险路径：{path}（{reason}）",
     },
     "skip_path_without_keyword": {
-        "en": "skip path without OpenClaw/Moltbot/Clawbot keyword: {path} ({reason})",
-        "zh": "跳过未包含 OpenClaw/Moltbot/Clawbot 关键词的路径：{path}（{reason}）",
+        "en": "skip path without OpenClaw/Moltbot/Clawdbot keyword: {path} ({reason})",
+        "zh": "跳过未包含 OpenClaw/Moltbot/Clawdbot 关键词的路径：{path}（{reason}）",
     },
     "remove_failed": {
         "en": "failed to remove {path}: {error}",
@@ -254,8 +252,8 @@ MESSAGES = {
         "zh": "汇总",
     },
     "app_title": {
-        "en": "OpenClaw / Moltbot / Clawdbot / ClawBot full uninstaller",
-        "zh": "OpenClaw / Moltbot / Clawdbot / ClawBot 完整卸载工具",
+        "en": "OpenClaw / Moltbot / Clawdbot full uninstaller",
+        "zh": "OpenClaw / Moltbot / Clawdbot 完整卸载工具",
     },
     "platform_line": {
         "en": "Platform: {platform}  Python: {python}",
@@ -330,8 +328,8 @@ MESSAGES = {
         "zh": "候选源码目录未确认是 OpenClaw 仓库，未自动删除：{path}",
     },
     "no_residue": {
-        "en": "No obvious OpenClaw/Moltbot/Clawbot residue found in checked locations.",
-        "zh": "在已检查位置未发现明显的 OpenClaw/Moltbot/Clawbot 残留。",
+        "en": "No obvious OpenClaw/Moltbot/Clawdbot residue found in checked locations.",
+        "zh": "在已检查位置未发现明显的 OpenClaw/Moltbot/Clawdbot 残留。",
     },
     "summary_counts": {
         "en": "Warnings: {warnings}  Errors: {errors}",
@@ -782,7 +780,7 @@ def choose_language(raw_lang: str) -> str:
 
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(
-        description="Purge OpenClaw / Moltbot / Clawdbot / ClawBot from Windows or Linux. Default: dry-run.",
+        description="Purge OpenClaw / Moltbot / Clawdbot from Windows or Linux. Default: dry-run.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     ap.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
@@ -793,19 +791,19 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--backup-root", default="", help="quarantine directory when --quarantine is used")
     ap.add_argument("--log-file", default="", help="write a transcript to this file in addition to stdout")
     ap.add_argument("--report-json", default="", help="write a machine-readable summary report to this JSON file")
-    ap.add_argument("--purge-docker", action="store_true", help="remove Docker/Podman containers, images, volumes and networks whose names/images match OpenClaw/Moltbot/Clawbot")
+    ap.add_argument("--purge-docker", action="store_true", help="remove Docker/Podman containers, images, volumes and networks whose names/images match OpenClaw/Moltbot/Clawdbot")
     ap.add_argument("--scan-source", action="store_true", help="scan common project folders for source checkouts and remove confirmed OpenClaw/Moltbot/Clawdbot repos")
     ap.add_argument("--purge-external-workspaces", action="store_true", help="delete workspace paths discovered in config even when outside OpenClaw state dirs")
     ap.add_argument("--purge-shared-agent-skills", action="store_true", help="delete ~/.agents/skills and related shared AgentSkills folders; can affect other tools")
     ap.add_argument("--purge-extra-skill-dirs", action="store_true", help="delete skills.load.extraDirs discovered in config; can affect other tools")
     ap.add_argument("--purge-caches", action="store_true", help="delete package-manager cache entries/folders that clearly match OpenClaw names; not whole npm/pnpm/bun caches")
-    ap.add_argument("--purge-vscode-extensions", action="store_true", help="uninstall VS Code extensions whose IDs contain openclaw/moltbot/clawbot/clawdbot")
+    ap.add_argument("--purge-vscode-extensions", action="store_true", help="uninstall VS Code extensions whose IDs contain openclaw/moltbot/clawdbot")
     ap.add_argument("--clean-shell-rc", action="store_true", help="remove OpenClaw-related lines from shell rc/profile files after making backups")
     ap.add_argument("--clean-registry", action="store_true", help="Windows only: delete OpenClaw-related uninstall, App Paths, Run/StartupApproved, and HKCU/HKLM software registry entries")
     ap.add_argument("--clean-machine-env", action="store_true", help="Windows only: also remove matching machine-level environment variables; requires Administrator for HKLM")
     ap.add_argument("--system-services", action="store_true", help="also try to remove system-wide Linux systemd units; use with sudo/root")
     ap.add_argument("--everything", action="store_true", help="enable all optional purge flags")
-    ap.add_argument("--no-kill", action="store_true", help="do not terminate remaining OpenClaw/Moltbot/Clawbot processes")
+    ap.add_argument("--no-kill", action="store_true", help="do not terminate remaining OpenClaw/Moltbot/Clawdbot processes")
     ap.add_argument("--no-npx", action="store_true", help="do not use npx fallback when the openclaw CLI is missing")
     args = ap.parse_args()
     args.lang = choose_language(args.lang)
@@ -855,14 +853,14 @@ def collect_state_and_config_paths(args: argparse.Namespace) -> tuple[list[Path]
     # Home-state directories, including --profile variants.
     for pat in [
         ".openclaw", ".openclaw-*", ".moltbot", ".moltbot-*", ".clawdbot", ".clawdbot-*",
-        ".clawbot", ".clawbot-*", ".clawd", ".clawd-*", ".clawdock", ".clawhub",
+        ".clawd", ".clawd-*", ".clawdock", ".clawhub",
     ]:
         paths.extend(glob_existing(HOME / pat))
 
     # XDG locations on Linux/WSL.
     if not IS_WINDOWS:
         for base in [HOME / ".config", HOME / ".cache", HOME / ".local" / "share", HOME / ".local" / "state"]:
-            for name in ["openclaw", "moltbot", "clawdbot", "clawbot", "clawdock", "clawhub"]:
+            for name in ["openclaw", "moltbot", "clawdbot", "clawdock", "clawhub"]:
                 paths.append(base / name)
         paths.append(HOME / ".config" / "openclaw" / "gateway.env")
         # Wrapper scripts / locally prefixed installs.
@@ -881,7 +879,7 @@ def collect_state_and_config_paths(args: argparse.Namespace) -> tuple[list[Path]
             val = os.environ.get(env_name)
             if val:
                 env_dirs.append(Path(val))
-        app_names = ["OpenClaw", "openclaw", "MoltBot", "Moltbot", "moltbot", "Clawdbot", "ClawBot", "Clawbot", "clawbot", "ClawHub", "clawhub"]
+        app_names = ["OpenClaw", "openclaw", "MoltBot", "Moltbot", "moltbot", "Clawdbot", "ClawHub", "clawhub"]
         for base in env_dirs:
             for name in app_names:
                 paths.append(base / name)
@@ -1057,8 +1055,8 @@ def linux_systemd_cleanup(r: Runner) -> None:
     r.info(render_section(tr("section_linux_user_services", r.lang)))
     user_unit_dir = HOME / ".config" / "systemd" / "user"
     units: set[str] = {
-        "openclaw-gateway.service", "moltbot-gateway.service", "clawdbot-gateway.service", "clawbot-gateway.service",
-        "clawd-gateway.service", "openclaw.service", "moltbot.service", "clawdbot.service", "clawbot.service",
+        "openclaw-gateway.service", "moltbot-gateway.service", "clawdbot-gateway.service",
+        "clawd-gateway.service", "openclaw.service", "moltbot.service", "clawdbot.service",
     }
     if user_unit_dir.exists():
         for p in user_unit_dir.iterdir():
@@ -1117,9 +1115,9 @@ def windows_service_cleanup(r: Runner) -> None:
         return
     script = r"""
 $items = Get-CimInstance Win32_Service | Where-Object {
-  $_.Name -match 'openclaw|moltbot|clawdbot|clawbot|clawdock|clawhub' -or
-  $_.DisplayName -match 'openclaw|moltbot|clawdbot|clawbot|clawdock|clawhub' -or
-  $_.PathName -match 'openclaw|moltbot|clawdbot|clawbot|clawdock|clawhub'
+  $_.Name -match 'openclaw|moltbot|clawdbot|clawdock|clawhub' -or
+  $_.DisplayName -match 'openclaw|moltbot|clawdbot|clawdock|clawhub' -or
+  $_.PathName -match 'openclaw|moltbot|clawdbot|clawdock|clawhub'
 } | Select-Object -ExpandProperty Name
 $items | ConvertTo-Json -Compress
 """
@@ -1169,8 +1167,8 @@ def terminate_processes(r: Runner) -> None:
             strong = (
                 comm.lower() in CLI_NAMES or
                 "node_modules/openclaw" in text or "node_modules/moltbot" in text or
-                "node_modules/clawdbot" in text or "node_modules/clawbot" in text or
-                re.search(r"\b(openclaw|moltbot|clawdbot|clawbot)\s+gateway\b", text) is not None or
+                "node_modules/clawdbot" in text or
+                re.search(r"\b(openclaw|moltbot|clawdbot)\s+gateway\b", text) is not None or
                 (".openclaw" in text and "gateway" in text)
             )
             if strong:
@@ -1206,9 +1204,9 @@ def terminate_processes(r: Runner) -> None:
 $me = $PID
 Get-CimInstance Win32_Process | Where-Object {
   $_.ProcessId -ne $me -and (
-    $_.Name -match '^(openclaw|moltbot|clawdbot|clawbot|clawhub)(\.exe)?$' -or
-    $_.CommandLine -match 'node_modules[\\/](openclaw|moltbot|clawdbot|clawbot)' -or
-    $_.CommandLine -match '\b(openclaw|moltbot|clawdbot|clawbot)\s+gateway\b' -or
+    $_.Name -match '^(openclaw|moltbot|clawdbot|clawhub)(\.exe)?$' -or
+    $_.CommandLine -match 'node_modules[\\/](openclaw|moltbot|clawdbot)' -or
+    $_.CommandLine -match '\b(openclaw|moltbot|clawdbot)\s+gateway\b' -or
     ($_.CommandLine -match '\.openclaw' -and $_.CommandLine -match 'gateway')
   )
 } | Select-Object ProcessId,Name,CommandLine | ConvertTo-Json -Compress
@@ -1413,7 +1411,7 @@ def remove_files(r: Runner, initial_paths: list[Path], config_files: list[Path])
     config_keys = {str(norm_path(p)).lower() for p in config_files}
     for p in dedupe_paths(initial_paths + discovered_managed):
         allow = str(norm_path(p)).lower() in env_path_keys or str(norm_path(p)).lower() in config_keys
-        r.remove_path(p, "OpenClaw/Moltbot/Clawbot state/config/app/bin/plugin path", allow_without_keyword=allow)
+        r.remove_path(p, "OpenClaw/Moltbot/Clawdbot state/config/app/bin/plugin path", allow_without_keyword=allow)
 
     # Shared AgentSkills are deliberately separate.
     shared_agent_paths = [HOME / ".agents" / "skills"]
@@ -1464,7 +1462,7 @@ def scan_source_repos(r: Runner) -> None:
         HOME, HOME / "Desktop", HOME / "Documents", HOME / "Downloads", HOME / "Projects", HOME / "projects",
         HOME / "Code", HOME / "code", HOME / "src", HOME / "workspace", HOME / "Work", HOME / "dev",
     ]
-    exact_names = ["openclaw", "OpenClaw", "moltbot", "Moltbot", "clawdbot", "Clawdbot", "clawbot", "ClawBot", "clawdock"]
+    exact_names = ["openclaw", "OpenClaw", "moltbot", "Moltbot", "clawdbot", "Clawdbot", "clawdock"]
     candidates: set[Path] = set()
     for root in common_roots:
         for name in exact_names:
@@ -1501,7 +1499,7 @@ def scan_source_repos(r: Runner) -> None:
                         text = cfg.read_text(encoding="utf-8", errors="ignore")
                     except Exception:
                         text = ""
-                    if re.search(r"github\.com[:/](openclaw/openclaw|moltbot/moltbot|.*clawdbot.*|.*clawbot.*)", text, re.I):
+                    if re.search(r"github\.com[:/](openclaw/openclaw|moltbot/moltbot|.*clawdbot.*)", text, re.I):
                         candidates.add(norm_path(dp))
                 # Do not recurse into repo internals too deeply.
                 if rel_depth >= 1:
@@ -1533,7 +1531,7 @@ def source_checkout_confirmed(p: Path) -> bool:
     if cfg.exists():
         try:
             text = cfg.read_text(encoding="utf-8", errors="ignore")
-            if re.search(r"github\.com[:/](openclaw/openclaw|moltbot/moltbot|.*clawdbot.*|.*clawbot.*)", text, re.I):
+            if re.search(r"github\.com[:/](openclaw/openclaw|moltbot/moltbot|.*clawdbot.*)", text, re.I):
                 return True
         except Exception:
             pass
@@ -1548,7 +1546,7 @@ def clean_shell_rc(r: Runner) -> None:
         HOME / ".bashrc", HOME / ".bash_profile", HOME / ".profile", HOME / ".zshrc", HOME / ".zprofile",
         HOME / ".config" / "fish" / "config.fish",
     ]
-    patterns = ["OPENCLAW_", "MOLTBOT_", "CLAWDBOT_", "CLAWBOT_", "CLAWDOCK", "openclaw.ai", "clawdbot", "moltbot", "openclaw"]
+    patterns = ["OPENCLAW_", "MOLTBOT_", "CLAWDBOT_", "CLAWDOCK", "openclaw.ai", "clawdbot", "moltbot", "openclaw"]
     for f in files:
         if not f.exists() or not f.is_file():
             continue
@@ -1581,7 +1579,7 @@ def clean_windows_user_env(r: Runner) -> None:
         return
     # Query user env vars by prefixes, then remove them.
     query = r"""
-$keys = 'OPENCLAW_','MOLTBOT_','CLAWDBOT_','CLAWBOT_','CLAWDOCK_'
+$keys = 'OPENCLAW_','MOLTBOT_','CLAWDBOT_','CLAWDOCK_'
 $vars = [Environment]::GetEnvironmentVariables('User').Keys | Where-Object {
   $k = [string]$_
   $keys | Where-Object { $k.StartsWith($_) }
@@ -1612,7 +1610,7 @@ def clean_windows_machine_env(r: Runner) -> None:
     if not ps:
         return
     query = r"""
-$keys = 'OPENCLAW_','MOLTBOT_','CLAWDBOT_','CLAWBOT_','CLAWDOCK_'
+$keys = 'OPENCLAW_','MOLTBOT_','CLAWDBOT_','CLAWDOCK_'
 $vars = [Environment]::GetEnvironmentVariables('Machine').Keys | Where-Object {
   $k = [string]$_
   $keys | Where-Object { $k.StartsWith($_) }
@@ -1648,7 +1646,7 @@ def clean_windows_powershell_profiles(r: Runner) -> None:
         docs / "PowerShell" / "Microsoft.PowerShell_profile.ps1",
         docs / "WindowsPowerShell" / "Microsoft.PowerShell_profile.ps1",
     ]
-    patterns = ["OPENCLAW_", "MOLTBOT_", "CLAWDBOT_", "CLAWBOT_", "CLAWDOCK", "openclaw.ai", "clawdbot", "moltbot", "openclaw"]
+    patterns = ["OPENCLAW_", "MOLTBOT_", "CLAWDBOT_", "CLAWDOCK", "openclaw.ai", "clawdbot", "moltbot", "openclaw"]
     for f in dedupe_paths(files):
         if not f.exists() or not f.is_file():
             continue
@@ -1697,10 +1695,9 @@ def clean_windows_registry(r: Runner) -> None:
     r.info(render_section(tr("section_windows_registry", r.lang)))
     exact_keys = [
         r"HKCU\Software\OpenClaw", r"HKCU\Software\MoltBot", r"HKCU\Software\Moltbot",
-        r"HKCU\Software\Clawdbot", r"HKCU\Software\ClawBot", r"HKCU\Software\Clawbot",
+        r"HKCU\Software\Clawdbot",
         r"HKCU\Software\ClawHub", r"HKLM\Software\OpenClaw", r"HKLM\Software\MoltBot",
-        r"HKLM\Software\Moltbot", r"HKLM\Software\Clawdbot", r"HKLM\Software\ClawBot",
-        r"HKLM\Software\Clawbot", r"HKLM\Software\ClawHub",
+        r"HKLM\Software\Moltbot", r"HKLM\Software\Clawdbot", r"HKLM\Software\ClawHub",
     ]
     scan_roots = [
         r"HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall",
@@ -1737,7 +1734,7 @@ foreach ($root in $roots) {
   foreach ($prop in $item.PSObject.Properties) {
     if ($prop.Name -like 'PS*') { continue }
     $text = "$($prop.Name) $($prop.Value)"
-    if ($text -match 'openclaw|moltbot|clawdbot|clawbot|clawdock|clawhub') {
+    if ($text -match 'openclaw|moltbot|clawdbot|clawdock|clawhub') {
       $hits += [pscustomobject]@{ Path = $root; Name = $prop.Name }
     }
   }

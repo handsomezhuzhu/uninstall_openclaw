@@ -80,6 +80,10 @@ class UninstallTests(unittest.TestCase):
         self.assertFalse(uninstall.process_env_value_path_like("PWD", r"E:\uninstall_openclaw"))
         self.assertTrue(uninstall.process_env_value_path_like("OPENCLAW_STATE_DIR", r"E:\state"))
 
+    def test_clawbot_without_d_is_not_matched(self) -> None:
+        self.assertFalse(uninstall.contains_keyword("clawbot"))
+        self.assertTrue(uninstall.contains_keyword("clawdbot"))
+
     def test_parse_args_accepts_lang_without_prompt(self) -> None:
         with patch("sys.argv", ["openclaw_full_uninstall.py", "--lang", "zh", "--no-color", "--no-npx", "--no-kill"]):
             args = uninstall.parse_args()
