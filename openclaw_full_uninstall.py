@@ -403,16 +403,35 @@ def resolve_command(cmd: list[str]) -> list[str]:
     return cmd
 
 
+def normalize_completed_process(cp: subprocess.CompletedProcess[str]) -> subprocess.CompletedProcess[str]:
+    cp.stdout = cp.stdout or ""
+    cp.stderr = cp.stderr or ""
+    return cp
+
+
+def safe_subprocess_run(cmd: list[str], timeout: int) -> subprocess.CompletedProcess[str]:
+    try:
+        cp = subprocess.run(
+            cmd,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=timeout,
+        )
+        return normalize_completed_process(cp)
+    except FileNotFoundError:
+        return subprocess.CompletedProcess(cmd, 127, "", "not found")
+    except subprocess.TimeoutExpired as e:
+        return subprocess.CompletedProcess(cmd, 124, e.stdout or "", e.stderr or "timeout")
+    except Exception as e:
+        return subprocess.CompletedProcess(cmd, 1, "", str(e))
+
+
 def run_read_plain(cmd: list[str], timeout: int = 60) -> subprocess.CompletedProcess[str]:
     resolved = resolve_command(cmd)
-    try:
-        return subprocess.run(resolved, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout)
-    except FileNotFoundError:
-        return subprocess.CompletedProcess(resolved, 127, "", "not found")
-    except subprocess.TimeoutExpired as e:
-        return subprocess.CompletedProcess(resolved, 124, e.stdout or "", e.stderr or "timeout")
-    except Exception as e:
-        return subprocess.CompletedProcess(resolved, 1, "", str(e))
+    return safe_subprocess_run(resolved, timeout=timeout)
 
 
 class Tee:
@@ -537,22 +556,16 @@ class Runner:
             print(tr("dry_run_run", self.lang, cmd=quote_cmd(resolved)))
             return subprocess.CompletedProcess(resolved, 0, "", "")
         print(f"[RUN] {quote_cmd(resolved)}")
-        try:
-            cp = subprocess.run(resolved, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout)
-            if cp.returncode not in set(ok_codes):
-                combined = (cp.stderr or cp.stdout or "").strip()
-                if combined:
-                    self.warn(tr("cmd_exited", self.lang, code=cp.returncode, cmd=quote_cmd(resolved), output=combined[:400]))
-            return cp
-        except FileNotFoundError:
+        cp = safe_subprocess_run(resolved, timeout=timeout)
+        if cp.returncode == 127 and cp.stderr == "not found":
             self.warn(tr("cmd_not_found", self.lang, cmd=cmd[0]))
-            return subprocess.CompletedProcess(resolved, 127, "", "not found")
-        except subprocess.TimeoutExpired as e:
+        elif cp.returncode == 124 and cp.stderr == "timeout":
             self.warn(tr("cmd_timeout", self.lang, cmd=quote_cmd(resolved)))
-            return subprocess.CompletedProcess(resolved, 124, e.stdout or "", e.stderr or "timeout")
-        except Exception as e:
-            self.warn(tr("cmd_failed", self.lang, cmd=quote_cmd(resolved), error=e))
-            return subprocess.CompletedProcess(resolved, 1, "", str(e))
+        elif cp.returncode not in set(ok_codes):
+            combined = (cp.stderr or cp.stdout or "").strip()
+            if combined:
+                self.warn(tr("cmd_exited", self.lang, code=cp.returncode, cmd=quote_cmd(resolved), output=combined[:400]))
+        return cp
 
     def remove_path(self, path: Path, reason: str, *, allow_without_keyword: bool = False) -> None:
         p = norm_path(path)

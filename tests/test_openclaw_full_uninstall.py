@@ -109,6 +109,14 @@ class UninstallTests(unittest.TestCase):
 
             self.assertIn("[演练] 删除", out.getvalue())
 
+    def test_run_read_plain_normalizes_empty_outputs(self) -> None:
+        completed = uninstall.subprocess.CompletedProcess(["tool"], 0, None, None)
+        with patch("openclaw_full_uninstall.subprocess.run", return_value=completed):
+            cp = uninstall.run_read_plain(["tool"])
+
+        self.assertEqual("", cp.stdout)
+        self.assertEqual("", cp.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
