@@ -118,6 +118,25 @@ class UninstallTests(unittest.TestCase):
         self.assertEqual("", cp.stdout)
         self.assertEqual("", cp.stderr)
 
+    def test_timeout_output_bytes_are_decoded(self) -> None:
+        err = uninstall.subprocess.TimeoutExpired(["pnpm"], 1, output=b"out\n", stderr=b"Corepack prompt\n")
+        with patch("openclaw_full_uninstall.subprocess.run", side_effect=err):
+            cp = uninstall.run_read_plain(["pnpm"], timeout=1)
+
+        self.assertEqual(124, cp.returncode)
+        self.assertEqual("out\n", cp.stdout)
+        self.assertEqual("Corepack prompt\n", cp.stderr)
+
+    def test_subprocess_run_uses_noninteractive_env(self) -> None:
+        completed = uninstall.subprocess.CompletedProcess(["pnpm"], 0, "", "")
+        with patch("openclaw_full_uninstall.subprocess.run", return_value=completed) as run:
+            uninstall.run_read_plain(["pnpm"])
+
+        kwargs = run.call_args.kwargs
+        self.assertEqual("0", kwargs["env"]["COREPACK_ENABLE_DOWNLOAD_PROMPT"])
+        self.assertEqual("1", kwargs["env"]["CI"])
+        self.assertIs(kwargs["stdin"], uninstall.subprocess.DEVNULL)
+
     def test_terminal_rendering_helpers(self) -> None:
         menu = uninstall.render_language_menu("zh")
         self.assertIn("语言", uninstall.strip_ansi(menu))

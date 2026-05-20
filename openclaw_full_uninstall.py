@@ -532,6 +532,25 @@ def normalize_completed_process(cp: subprocess.CompletedProcess[str]) -> subproc
     return cp
 
 
+def ensure_text(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return str(value)
+
+
+def noninteractive_env() -> dict[str, str]:
+    env = os.environ.copy()
+    env.setdefault("CI", "1")
+    env.setdefault("NO_UPDATE_NOTIFIER", "1")
+    env.setdefault("NPM_CONFIG_YES", "true")
+    env.setdefault("npm_config_yes", "true")
+    env.setdefault("COREPACK_ENABLE_DOWNLOAD_PROMPT", "0")
+    env.setdefault("COREPACK_ENABLE_PROJECT_SPEC", "0")
+    return env
+
+
 def safe_subprocess_run(cmd: list[str], timeout: int) -> subprocess.CompletedProcess[str]:
     try:
         cp = subprocess.run(
@@ -542,12 +561,16 @@ def safe_subprocess_run(cmd: list[str], timeout: int) -> subprocess.CompletedPro
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             timeout=timeout,
+            stdin=subprocess.DEVNULL,
+            env=noninteractive_env(),
         )
         return normalize_completed_process(cp)
     except FileNotFoundError:
         return subprocess.CompletedProcess(cmd, 127, "", "not found")
     except subprocess.TimeoutExpired as e:
-        return subprocess.CompletedProcess(cmd, 124, e.stdout or "", e.stderr or "timeout")
+        stdout = ensure_text(e.stdout)
+        stderr = ensure_text(e.stderr) or "timeout"
+        return subprocess.CompletedProcess(cmd, 124, stdout, stderr)
     except Exception as e:
         return subprocess.CompletedProcess(cmd, 1, "", str(e))
 
@@ -1248,16 +1271,16 @@ def package_manager_cleanup(r: Runner) -> None:
     pnpm_pkgs = discover_pnpm_global_packages()
     if which("npm"):
         for pkg in sorted(npm_pkgs):
-            r.run_mutate(["npm", "rm", "-g", pkg], ok_codes=(0, 1, 127), timeout=180)
+            r.run_mutate(["npm", "rm", "-g", "--yes", pkg], ok_codes=(0, 1, 127), timeout=180)
     if which("pnpm"):
         for pkg in sorted(pnpm_pkgs):
-            r.run_mutate(["pnpm", "remove", "-g", pkg], ok_codes=(0, 1, 127), timeout=180)
+            r.run_mutate(["pnpm", "remove", "-g", pkg], ok_codes=(0, 1, 127), timeout=60)
     if which("bun"):
         for pkg in sorted(PKG_EXACT):
             r.run_mutate(["bun", "remove", "-g", pkg], ok_codes=(0, 1, 127), timeout=180)
     if which("yarn"):
         for pkg in sorted(PKG_EXACT):
-            r.run_mutate(["yarn", "global", "remove", pkg], ok_codes=(0, 1, 127), timeout=180)
+            r.run_mutate(["yarn", "--non-interactive", "global", "remove", pkg], ok_codes=(0, 1, 127), timeout=180)
     # Common unofficial managers. Exact package names only; failures are harmless.
     if IS_WINDOWS:
         if which("scoop"):
