@@ -90,6 +90,15 @@ class UninstallTests(unittest.TestCase):
 
         self.assertEqual("zh", args.lang)
         self.assertTrue(args.no_color)
+        self.assertTrue(args.purge_docker)
+
+    def test_parse_args_can_skip_docker_and_never_exposes_skill_purge(self) -> None:
+        with patch("sys.argv", ["openclaw_full_uninstall.py", "--lang", "en", "--keep-docker", "--everything"]):
+            args = uninstall.parse_args()
+
+        self.assertFalse(args.purge_docker)
+        self.assertFalse(hasattr(args, "purge_shared_agent_skills"))
+        self.assertFalse(hasattr(args, "purge_extra_skill_dirs"))
 
     def test_parse_args_non_interactive_defaults_to_english(self) -> None:
         class NonInteractiveInput(io.StringIO):
@@ -140,6 +149,11 @@ class UninstallTests(unittest.TestCase):
         self.assertEqual("0", kwargs["env"]["COREPACK_ENABLE_DOWNLOAD_PROMPT"])
         self.assertEqual("1", kwargs["env"]["CI"])
         self.assertIs(kwargs["stdin"], uninstall.subprocess.DEVNULL)
+
+    def test_exact_package_fallback_contains_scoped_history(self) -> None:
+        self.assertIn("@openclaw/cli", uninstall.PKG_EXACT)
+        self.assertIn("@clawdbot/cli", uninstall.PKG_EXACT)
+        self.assertIn("@qingchencloud/openclaw-zh", uninstall.PKG_EXACT)
 
     def test_terminal_rendering_helpers(self) -> None:
         menu = uninstall.render_language_menu("zh")

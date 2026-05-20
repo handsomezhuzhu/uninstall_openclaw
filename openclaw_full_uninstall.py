@@ -43,6 +43,7 @@ __version__ = "0.2.0"
 
 IS_WINDOWS = os.name == "nt"
 IS_LINUX = sys.platform.startswith("linux")
+IS_MACOS = sys.platform == "darwin"
 HOME = Path.home()
 TIMESTAMP = _dt.datetime.now().strftime("%Y%m%d-%H%M%S")
 
@@ -58,8 +59,12 @@ KEYWORDS = (
 CLI_NAMES = ("openclaw", "moltbot", "clawdbot")
 PKG_EXACT = (
     "openclaw",
+    "@openclaw/cli",
+    "@qingchencloud/openclaw-zh",
     "moltbot",
+    "@moltbot/cli",
     "clawdbot",
+    "@clawdbot/cli",
     "clawhub",
 )
 ENV_PREFIXES = ("OPENCLAW_", "MOLTBOT_", "CLAWDBOT_", "CLAWDOCK_")
@@ -239,6 +244,10 @@ MESSAGES = {
         "en": "Windows registry cleanup",
         "zh": "Windows 注册表清理",
     },
+    "section_macos_launchd": {
+        "en": "macOS launchd services",
+        "zh": "macOS launchd 服务",
+    },
     "section_vscode": {
         "en": "VS Code extension cleanup",
         "zh": "VS Code 扩展清理",
@@ -308,16 +317,16 @@ MESSAGES = {
         "zh": "[演练] 终止进程 pid={pid}",
     },
     "left_shared_skills": {
-        "en": "left shared AgentSkills directory intact: {path}; use --purge-shared-agent-skills to remove it",
-        "zh": "已保留共享 AgentSkills 目录：{path}；使用 --purge-shared-agent-skills 可删除",
+        "en": "left shared AgentSkills directory intact: {path}; skills are never deleted by this script",
+        "zh": "已保留共享 AgentSkills 目录：{path}；本脚本不会删除 skills",
     },
     "left_external_workspace": {
         "en": "left external workspace intact: {path}; use --purge-external-workspaces to remove it",
         "zh": "已保留外部工作区：{path}；使用 --purge-external-workspaces 可删除",
     },
     "left_extra_skill_dir": {
-        "en": "left extra skill dir intact: {path}; use --purge-extra-skill-dirs to remove it",
-        "zh": "已保留额外技能目录：{path}；使用 --purge-extra-skill-dirs 可删除",
+        "en": "left extra skill dir intact: {path}; skills are never deleted by this script",
+        "zh": "已保留额外技能目录：{path}；本脚本不会删除 skills",
     },
     "source_scan_limit": {
         "en": "source scan stopped early after max directory limit",
@@ -791,11 +800,10 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--backup-root", default="", help="quarantine directory when --quarantine is used")
     ap.add_argument("--log-file", default="", help="write a transcript to this file in addition to stdout")
     ap.add_argument("--report-json", default="", help="write a machine-readable summary report to this JSON file")
-    ap.add_argument("--purge-docker", action="store_true", help="remove Docker/Podman containers, images, volumes and networks whose names/images match OpenClaw/Moltbot/Clawdbot")
+    ap.add_argument("--purge-docker", action="store_true", default=True, help="remove Docker/Podman containers, images, volumes and networks whose names/images/labels match OpenClaw/Moltbot/Clawdbot")
+    ap.add_argument("--keep-docker", action="store_true", help="skip Docker/Podman cleanup")
     ap.add_argument("--scan-source", action="store_true", help="scan common project folders for source checkouts and remove confirmed OpenClaw/Moltbot/Clawdbot repos")
     ap.add_argument("--purge-external-workspaces", action="store_true", help="delete workspace paths discovered in config even when outside OpenClaw state dirs")
-    ap.add_argument("--purge-shared-agent-skills", action="store_true", help="delete ~/.agents/skills and related shared AgentSkills folders; can affect other tools")
-    ap.add_argument("--purge-extra-skill-dirs", action="store_true", help="delete skills.load.extraDirs discovered in config; can affect other tools")
     ap.add_argument("--purge-caches", action="store_true", help="delete package-manager cache entries/folders that clearly match OpenClaw names; not whole npm/pnpm/bun caches")
     ap.add_argument("--purge-vscode-extensions", action="store_true", help="uninstall VS Code extensions whose IDs contain openclaw/moltbot/clawdbot")
     ap.add_argument("--clean-shell-rc", action="store_true", help="remove OpenClaw-related lines from shell rc/profile files after making backups")
@@ -811,14 +819,14 @@ def parse_args() -> argparse.Namespace:
         args.purge_docker = True
         args.scan_source = True
         args.purge_external_workspaces = True
-        args.purge_shared_agent_skills = True
-        args.purge_extra_skill_dirs = True
         args.purge_caches = True
         args.purge_vscode_extensions = True
         args.clean_shell_rc = True
         args.clean_registry = True
         args.clean_machine_env = True
         args.system_services = True
+    if args.keep_docker:
+        args.purge_docker = False
     return args
 
 
@@ -871,6 +879,27 @@ def collect_state_and_config_paths(args: argparse.Namespace) -> tuple[list[Path]
                 paths.append(helper)
         for pkg in PKG_EXACT:
             paths.append(HOME / ".npm-global" / "lib" / "node_modules" / pkg)
+
+    if IS_MACOS:
+        mac_bases = [
+            HOME / "Library" / "Application Support",
+            HOME / "Library" / "Caches",
+            HOME / "Library" / "Logs",
+            HOME / "Library" / "Preferences",
+            HOME / "Library" / "Saved Application State",
+            HOME / "Library" / "HTTPStorages",
+            Path("/Library/Application Support"),
+            Path("/Library/Caches"),
+            Path("/Library/Logs"),
+        ]
+        mac_names = ["OpenClaw", "openclaw", "MoltBot", "Moltbot", "moltbot", "Clawdbot", "ClawHub", "clawhub"]
+        for base in mac_bases:
+            for name in mac_names:
+                paths.append(base / name)
+                paths.append(base / f"{name}.plist")
+        for app_dir in [Path("/Applications"), HOME / "Applications"]:
+            for name in ["OpenClaw", "MoltBot", "Moltbot", "Clawdbot", "ClawHub"]:
+                paths.append(app_dir / f"{name}.app")
 
     # Windows locations.
     if IS_WINDOWS:
@@ -1024,8 +1053,6 @@ def find_paths_in_config(obj: Any, base_dir: Path, args: argparse.Namespace) -> 
                 extra_skills.append(p)
             elif "plugin" in full_key and ("dir" in full_key or "path" in full_key or p.exists()):
                 managed.append(p)
-            elif "skill" in full_key and ("dir" in full_key or "path" in full_key) and args.purge_extra_skill_dirs:
-                extra_skills.append(p)
 
     walk(obj, [])
     return dedupe_paths(workspaces), dedupe_paths(managed), dedupe_paths(extra_skills)
@@ -1085,6 +1112,28 @@ def linux_systemd_cleanup(r: Runner) -> None:
                 r.remove_path(d / unit, "systemd system unit")
         if sys_units:
             r.run_mutate(["systemctl", "daemon-reload"], ok_codes=(0, 1, 127))
+
+
+def macos_launchd_cleanup(r: Runner) -> None:
+    if not IS_MACOS:
+        return
+    r.info(render_section(tr("section_macos_launchd", r.lang)))
+    launch_dirs = [HOME / "Library" / "LaunchAgents", Path("/Library/LaunchAgents"), Path("/Library/LaunchDaemons")]
+    candidates: set[Path] = set()
+    for d in launch_dirs:
+        if not d.exists():
+            continue
+        try:
+            for p in d.iterdir():
+                if p.is_file() and p.suffix == ".plist" and contains_keyword(p.name):
+                    candidates.add(norm_path(p))
+        except Exception:
+            continue
+    for p in sorted(candidates, key=lambda x: str(x).lower()):
+        domain = "gui/" + str(os.getuid()) if str(p).startswith(str(HOME)) else "system"
+        r.run_mutate(["launchctl", "bootout", domain, str(p)], ok_codes=(0, 1, 3, 5, 36, 113, 127), timeout=60)
+        r.run_mutate(["launchctl", "unload", str(p)], ok_codes=(0, 1, 3, 5, 36, 113, 127), timeout=60)
+        r.remove_path(p, "macOS launchd plist")
 
 
 def windows_task_cleanup(r: Runner) -> None:
@@ -1263,6 +1312,43 @@ def discover_pnpm_global_packages() -> set[str]:
     return pkgs
 
 
+def command_stdout_lines(cmd: list[str], timeout: int = 30) -> list[str]:
+    cp = run_read_plain(cmd, timeout=timeout)
+    if cp.returncode != 0:
+        return []
+    return [line.strip() for line in cp.stdout.splitlines() if line.strip()]
+
+
+def discover_global_tool_paths() -> list[Path]:
+    paths: list[Path] = []
+    cli_names = list(CLI_NAMES) + ["clawhub"]
+    node_module_names = list(PKG_EXACT)
+    for cmd in [["npm", "bin", "-g"], ["pnpm", "bin", "-g"], ["yarn", "global", "bin"], ["bun", "pm", "bin", "-g"]]:
+        for line in command_stdout_lines(cmd):
+            bin_dir = Path(line)
+            for name in cli_names:
+                for suffix in ["", ".cmd", ".ps1"] if IS_WINDOWS else [""]:
+                    paths.append(bin_dir / f"{name}{suffix}")
+            for helper in bin_dir.glob("clawdock-*") if bin_dir.exists() else []:
+                paths.append(helper)
+    module_roots: list[Path] = []
+    for line in command_stdout_lines(["npm", "prefix", "-g"]):
+        module_roots.append(Path(line) / "lib" / "node_modules")
+    for line in command_stdout_lines(["pnpm", "root", "-g"]):
+        module_roots.append(Path(line))
+    for line in command_stdout_lines(["yarn", "global", "dir"]):
+        module_roots.append(Path(line) / "node_modules")
+    for line in command_stdout_lines(["bun", "pm", "ls", "-g"]):
+        if contains_keyword(line):
+            parts = line.split()
+            if parts:
+                paths.append(Path(parts[-1]))
+    for module_base in module_roots:
+        for name in node_module_names:
+            paths.append(module_base / name)
+    return dedupe_paths(paths)
+
+
 def package_manager_cleanup(r: Runner) -> None:
     r.info(render_section(tr("section_package_manager", r.lang)))
     npm_pkgs = discover_npm_global_packages()
@@ -1291,6 +1377,8 @@ def package_manager_cleanup(r: Runner) -> None:
         if which("brew"):
             for pkg in sorted(PKG_EXACT):
                 r.run_mutate(["brew", "uninstall", "--force", pkg], ok_codes=(0, 1, 127), timeout=300)
+            for pkg in ["openclaw", "moltbot", "clawdbot", "clawhub"]:
+                r.run_mutate(["brew", "uninstall", "--cask", "--force", pkg], ok_codes=(0, 1, 127), timeout=300)
 
 
 def nix_cleanup(r: Runner) -> None:
@@ -1326,7 +1414,7 @@ def docker_like_cleanup(r: Runner, tool: str) -> None:
         return
     r.info(render_section(tr("section_docker", r.lang, tool=tool)))
     # Containers.
-    cp = r.run_read([tool, "container", "ls", "-a", "--format", "{{.ID}}\t{{.Names}}\t{{.Image}}"], timeout=60)
+    cp = r.run_read([tool, "container", "ls", "-a", "--format", "{{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Labels}}"], timeout=60)
     if cp.returncode == 0:
         ids: list[str] = []
         for line in cp.stdout.splitlines():
@@ -1344,18 +1432,42 @@ def docker_like_cleanup(r: Runner, tool: str) -> None:
         for iid in sorted(set(ids)):
             r.run_mutate([tool, "rmi", "-f", iid], ok_codes=(0, 1, 127), timeout=300)
     # Volumes.
-    cp = r.run_read([tool, "volume", "ls", "--format", "{{.Name}}"], timeout=60)
+    cp = r.run_read([tool, "volume", "ls", "--format", "{{.Name}}\t{{.Labels}}"], timeout=60)
     if cp.returncode == 0:
-        for name in cp.stdout.splitlines():
-            if contains_keyword(name):
+        for line in cp.stdout.splitlines():
+            if contains_keyword(line):
+                name = line.split("\t", 1)[0]
                 r.run_mutate([tool, "volume", "rm", "-f", name], ok_codes=(0, 1, 127), timeout=180)
     # Networks.
-    cp = r.run_read([tool, "network", "ls", "--format", "{{.ID}}\t{{.Name}}"], timeout=60)
+    cp = r.run_read([tool, "network", "ls", "--format", "{{.ID}}\t{{.Name}}\t{{.Labels}}"], timeout=60)
     if cp.returncode == 0:
         for line in cp.stdout.splitlines():
             if contains_keyword(line):
                 nid = line.split("\t", 1)[0]
                 r.run_mutate([tool, "network", "rm", nid], ok_codes=(0, 1, 127), timeout=180)
+    # Compose projects and services exposed by labels.
+    cp = r.run_read([tool, "compose", "ls", "--format", "json"], timeout=60)
+    if cp.returncode == 0 and cp.stdout.strip():
+        try:
+            data = json.loads(cp.stdout)
+            items = data if isinstance(data, list) else []
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                text = json.dumps(item, ensure_ascii=False)
+                name = str(item.get("Name") or item.get("name") or "")
+                config = str(item.get("ConfigFiles") or item.get("configFiles") or "")
+                if name and contains_keyword(text):
+                    cmd = [tool, "compose", "-p", name]
+                    if config:
+                        for part in config.split(","):
+                            part = part.strip()
+                            if part:
+                                cmd.extend(["-f", part])
+                    cmd.extend(["down", "--remove-orphans", "--volumes", "--rmi", "local"])
+                    r.run_mutate(cmd, ok_codes=(0, 1, 127), timeout=300)
+        except Exception:
+            pass
 
 
 def docker_cleanup(r: Runner) -> None:
@@ -1409,19 +1521,15 @@ def remove_files(r: Runner, initial_paths: list[Path], config_files: list[Path])
     # Include default state paths and managed plugin paths first.
     env_path_keys = {str(norm_path(p)).lower() for p in collect_env_overrides()}
     config_keys = {str(norm_path(p)).lower() for p in config_files}
-    for p in dedupe_paths(initial_paths + discovered_managed):
+    for p in dedupe_paths(initial_paths + discovered_managed + discover_global_tool_paths()):
         allow = str(norm_path(p)).lower() in env_path_keys or str(norm_path(p)).lower() in config_keys
         r.remove_path(p, "OpenClaw/Moltbot/Clawdbot state/config/app/bin/plugin path", allow_without_keyword=allow)
 
     # Shared AgentSkills are deliberately separate.
-    shared_agent_paths = [HOME / ".agents" / "skills"]
-    if r.args.purge_shared_agent_skills:
-        for p in shared_agent_paths:
-            r.remove_path(p, "shared personal AgentSkills directory", allow_without_keyword=True)
-    else:
-        for p in shared_agent_paths:
-            if p.exists():
-                r.warn(tr("left_shared_skills", r.lang, path=p))
+    shared_agent_paths = [HOME / ".agents" / "skills", HOME / ".codex" / "skills"]
+    for p in shared_agent_paths:
+        if p.exists():
+            r.warn(tr("left_shared_skills", r.lang, path=p))
 
     # Workspaces: default state workspaces are already removed with state dir. External needs explicit flag.
     for ws in dedupe_paths(discovered_workspaces):
@@ -1431,13 +1539,9 @@ def remove_files(r: Runner, initial_paths: list[Path], config_files: list[Path])
         else:
             r.warn(tr("left_external_workspace", r.lang, path=ws))
 
-    if r.args.purge_extra_skill_dirs:
-        for p in dedupe_paths(discovered_extra_skills):
-            r.remove_path(p, "skills.load.extraDirs discovered in config", allow_without_keyword=True)
-    else:
-        for p in dedupe_paths(discovered_extra_skills):
-            if p.exists():
-                r.warn(tr("left_extra_skill_dir", r.lang, path=p))
+    for p in dedupe_paths(discovered_extra_skills):
+        if p.exists():
+            r.warn(tr("left_extra_skill_dir", r.lang, path=p))
 
     if r.args.purge_caches:
         for p in package_cache_paths():
@@ -1847,6 +1951,7 @@ def main() -> int:
     # Do service shutdown before file removal, but config paths have already been collected.
     official_cli_uninstall(r)
     linux_systemd_cleanup(r)
+    macos_launchd_cleanup(r)
     windows_task_cleanup(r)
     windows_service_cleanup(r)
     terminate_processes(r)

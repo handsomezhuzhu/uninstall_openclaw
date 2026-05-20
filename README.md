@@ -11,7 +11,8 @@ OpenClaw / Moltbot / Clawdbot 的 Windows、Linux、WSL 完整卸载脚本。
 - 默认是 `DRY-RUN` 演练模式，只打印计划操作，不删除文件。
 - 真正清理必须显式传入 `--yes`。
 - `--quarantine` 会把文件移动到隔离目录，而不是永久删除。
-- 外部工作区、共享 `~/.agents/skills`、缓存、VS Code 扩展、Docker/Podman 资源、shell profile、Windows 注册表、系统服务都需要显式参数或 `--everything`。
+- 外部工作区、缓存、VS Code 扩展、shell profile、Windows 注册表、系统服务需要显式参数或 `--everything`；Docker/Podman 匹配资源默认会清理，可用 `--keep-docker` 跳过。
+- `~/.agents/skills`、`~/.codex/skills` 和配置里的 extra skill dirs 只提示保留，不会删除。
 - 会拒绝删除磁盘根目录、用户根目录、系统目录和过宽的非 OpenClaw 路径。
 
 ### 语言选择
@@ -74,11 +75,10 @@ python3 openclaw_full_uninstall.py --lang zh --yes --quarantine --purge-docker -
 | `--yes` | 执行清理。没有这个参数时只做演练。 |
 | `--quarantine` | 移动到隔离目录，而不是永久删除。 |
 | `--backup-root PATH` | 指定隔离目录。 |
-| `--purge-docker` | 删除匹配的 Docker/Podman 容器、镜像、卷和网络。 |
+| `--purge-docker` | 删除匹配的 Docker/Podman 容器、镜像、卷、网络和 Compose 项目；默认开启。 |
+| `--keep-docker` | 跳过 Docker/Podman 清理。 |
 | `--scan-source` | 扫描常见项目目录，删除已确认的 OpenClaw 相关源码仓库。 |
 | `--purge-external-workspaces` | 删除配置中发现的外部工作区。 |
-| `--purge-shared-agent-skills` | 删除共享 `~/.agents/skills`；可能影响其他工具。 |
-| `--purge-extra-skill-dirs` | 删除配置中的 `skills.load.extraDirs`。 |
 | `--purge-caches` | 删除明显匹配 OpenClaw 名称的包管理器缓存项。 |
 | `--purge-vscode-extensions` | 卸载 ID 匹配的 VS Code/Codium 扩展。 |
 | `--clean-shell-rc` | 备份后清理 shell rc/profile 中的 OpenClaw 相关行。 |
@@ -92,6 +92,8 @@ python3 openclaw_full_uninstall.py --lang zh --yes --quarantine --purge-docker -
 - 请使用安装 OpenClaw 的同一个系统用户运行。
 - Windows 上只有清理服务、HKLM 注册表项或机器级环境变量时才需要管理员权限。
 - WSL 中请在每个 WSL 发行版内运行；如果 Windows 原生也安装过，还需要在 Windows 下运行一次。
+- macOS 会清理常见 launchd plist、`~/Library`、`/Library` 和 `/Applications` 残留；当前未在 macOS 真机验证。
+- 源码构建/`pnpm link --global`/npm global link 这类安装，会通过全局 bin/root/prefix 路径和 `--scan-source` 辅助清理。
 - 使用 `--yes` 前请先检查 dry-run 输出。
 
 ### 测试
@@ -109,7 +111,8 @@ The script is intentionally conservative:
 - Default mode is `DRY-RUN`; it prints what would happen and does not delete files.
 - Real cleanup requires `--yes`.
 - `--quarantine` moves files aside instead of permanently deleting them.
-- External workspaces, shared `~/.agents/skills`, cache folders, VS Code extensions, Docker/Podman artifacts, shell profiles, Windows registry cleanup, and system services require explicit flags or `--everything`.
+- External workspaces, cache folders, VS Code extensions, shell profiles, Windows registry cleanup, and system services require explicit flags or `--everything`; matching Docker/Podman artifacts are cleaned by default and can be skipped with `--keep-docker`.
+- `~/.agents/skills`, `~/.codex/skills`, and configured extra skill dirs are reported and kept, never deleted.
 - Dangerous paths such as drive roots, home roots, system folders, and broad non-OpenClaw paths are refused.
 
 ### Language
@@ -172,11 +175,10 @@ python3 openclaw_full_uninstall.py --lang en --yes --quarantine --purge-docker -
 | `--yes` | Apply changes. Without it, the script is dry-run only. |
 | `--quarantine` | Move files to a quarantine folder instead of deleting them permanently. |
 | `--backup-root PATH` | Choose the quarantine folder. |
-| `--purge-docker` | Remove matching Docker/Podman containers, images, volumes, and networks. |
+| `--purge-docker` | Remove matching Docker/Podman containers, images, volumes, networks, and Compose projects. Enabled by default. |
+| `--keep-docker` | Skip Docker/Podman cleanup. |
 | `--scan-source` | Scan common project folders for confirmed OpenClaw-related source checkouts. |
 | `--purge-external-workspaces` | Remove workspace paths discovered in config even when outside OpenClaw state dirs. |
-| `--purge-shared-agent-skills` | Remove shared `~/.agents/skills`; this can affect other tools. |
-| `--purge-extra-skill-dirs` | Remove `skills.load.extraDirs` discovered in config. |
 | `--purge-caches` | Remove package-manager cache entries that clearly match OpenClaw names. |
 | `--purge-vscode-extensions` | Uninstall VS Code/Codium extensions whose IDs match OpenClaw-related names. |
 | `--clean-shell-rc` | Remove OpenClaw-related lines from shell rc/profile files after backup. |
@@ -190,6 +192,8 @@ python3 openclaw_full_uninstall.py --lang en --yes --quarantine --purge-docker -
 - Run as the same OS user that installed OpenClaw.
 - On Windows, run as Administrator only when you need services, HKLM registry keys, or machine environment variables removed.
 - On WSL, run the script inside each WSL distro and also on Windows if a native Windows install exists.
+- macOS cleanup covers common launchd plists, `~/Library`, `/Library`, and `/Applications` residue, but has not been verified on a real Mac in this repo.
+- Source builds and global links such as `pnpm link --global` are handled through global bin/root/prefix discovery plus optional `--scan-source`.
 - Review dry-run output before using `--yes`.
 
 ### Test
