@@ -76,6 +76,264 @@ SKIP_WALK_DIRS = {
     "Program Files (x86)", "ProgramData",
 }
 
+DEFAULT_LANG = "en"
+
+MESSAGES = {
+    "language_menu": {
+        "en": "Language / 语言: [1] English  [2] 中文",
+        "zh": "语言 / Language: [1] English  [2] 中文",
+    },
+    "language_prompt": {
+        "en": "Select language / 请选择语言 (1/en, 2/zh) [2]: ",
+        "zh": "请选择语言 / Select language (1/en, 2/zh) [2]: ",
+    },
+    "language_selected": {
+        "en": "Language: English",
+        "zh": "语言：中文",
+    },
+    "log_open_failed": {
+        "en": "could not open log file {path}: {error}",
+        "zh": "无法打开日志文件 {path}: {error}",
+    },
+    "log_transcript": {
+        "en": "transcript: {path}",
+        "zh": "日志记录：{path}",
+    },
+    "admin_hint_windows": {
+        "en": "not running as Administrator; Windows services, HKLM registry keys, and machine environment variables may remain.",
+        "zh": "当前未以管理员身份运行；Windows 服务、HKLM 注册表项和机器级环境变量可能会保留。",
+    },
+    "admin_hint_linux": {
+        "en": "--system-services was requested but this process is not root; system unit removals may fail.",
+        "zh": "已请求 --system-services，但当前进程不是 root；系统级服务删除可能失败。",
+    },
+    "cmd_exited": {
+        "en": "command exited {code}: {cmd} :: {output}",
+        "zh": "命令退出码 {code}: {cmd} :: {output}",
+    },
+    "cmd_not_found": {
+        "en": "command not found: {cmd}",
+        "zh": "命令不存在：{cmd}",
+    },
+    "cmd_timeout": {
+        "en": "command timed out: {cmd}",
+        "zh": "命令超时：{cmd}",
+    },
+    "cmd_failed": {
+        "en": "command failed: {cmd} :: {error}",
+        "zh": "命令失败：{cmd} :: {error}",
+    },
+    "skip_dangerous_path": {
+        "en": "skip dangerous path: {path} ({reason})",
+        "zh": "跳过危险路径：{path}（{reason}）",
+    },
+    "skip_path_without_keyword": {
+        "en": "skip path without OpenClaw/Moltbot/Clawbot keyword: {path} ({reason})",
+        "zh": "跳过未包含 OpenClaw/Moltbot/Clawbot 关键词的路径：{path}（{reason}）",
+    },
+    "remove_failed": {
+        "en": "failed to remove {path}: {error}",
+        "zh": "删除失败 {path}: {error}",
+    },
+    "section_cli": {
+        "en": "\n== Built-in CLI uninstall / gateway stop ==",
+        "zh": "\n== 内置 CLI 卸载 / 网关停止 ==",
+    },
+    "section_linux_user_services": {
+        "en": "\n== Linux systemd user services ==",
+        "zh": "\n== Linux systemd 用户服务 ==",
+    },
+    "section_linux_system_services": {
+        "en": "\n== Linux systemd system services ==",
+        "zh": "\n== Linux systemd 系统服务 ==",
+    },
+    "section_windows_tasks": {
+        "en": "\n== Windows Scheduled Tasks ==",
+        "zh": "\n== Windows 计划任务 ==",
+    },
+    "section_windows_services": {
+        "en": "\n== Windows Services ==",
+        "zh": "\n== Windows 服务 ==",
+    },
+    "section_processes": {
+        "en": "\n== Remaining process cleanup ==",
+        "zh": "\n== 剩余进程清理 ==",
+    },
+    "section_package_manager": {
+        "en": "\n== Package manager global uninstall ==",
+        "zh": "\n== 包管理器全局卸载 ==",
+    },
+    "section_nix": {
+        "en": "\n== Nix profile cleanup ==",
+        "zh": "\n== Nix profile 清理 ==",
+    },
+    "section_docker": {
+        "en": "\n== {tool} containers/images/volumes/networks ==",
+        "zh": "\n== {tool} 容器/镜像/卷/网络 ==",
+    },
+    "section_files": {
+        "en": "\n== File and directory cleanup ==",
+        "zh": "\n== 文件和目录清理 ==",
+    },
+    "section_source": {
+        "en": "\n== Source checkout scan ==",
+        "zh": "\n== 源码仓库扫描 ==",
+    },
+    "section_shell_rc": {
+        "en": "\n== Shell rc/profile cleanup ==",
+        "zh": "\n== Shell rc/profile 清理 ==",
+    },
+    "section_windows_user_env": {
+        "en": "\n== Windows user environment variables ==",
+        "zh": "\n== Windows 用户环境变量 ==",
+    },
+    "section_windows_machine_env": {
+        "en": "\n== Windows machine environment variables ==",
+        "zh": "\n== Windows 机器级环境变量 ==",
+    },
+    "section_windows_ps_profiles": {
+        "en": "\n== Windows PowerShell profile cleanup ==",
+        "zh": "\n== Windows PowerShell profile 清理 ==",
+    },
+    "section_windows_registry": {
+        "en": "\n== Windows registry cleanup ==",
+        "zh": "\n== Windows 注册表清理 ==",
+    },
+    "section_vscode": {
+        "en": "\n== VS Code extension cleanup ==",
+        "zh": "\n== VS Code 扩展清理 ==",
+    },
+    "section_residue": {
+        "en": "\n== Residue check ==",
+        "zh": "\n== 残留检查 ==",
+    },
+    "section_summary": {
+        "en": "\n== Summary ==",
+        "zh": "\n== 汇总 ==",
+    },
+    "app_title": {
+        "en": "OpenClaw / Moltbot / Clawdbot / ClawBot full uninstaller",
+        "zh": "OpenClaw / Moltbot / Clawdbot / ClawBot 完整卸载工具",
+    },
+    "platform_line": {
+        "en": "Platform: {platform}  Python: {python}",
+        "zh": "平台：{platform}  Python：{python}",
+    },
+    "mode_line": {
+        "en": "Mode: {mode}",
+        "zh": "模式：{mode}",
+    },
+    "mode_apply": {
+        "en": "APPLY (will delete)",
+        "zh": "执行（会删除）",
+    },
+    "mode_dry_run": {
+        "en": "DRY-RUN (no changes)",
+        "zh": "演练（不会改动）",
+    },
+    "mode_apply_short": {
+        "en": "APPLY",
+        "zh": "执行",
+    },
+    "mode_dry_run_short": {
+        "en": "DRY-RUN",
+        "zh": "演练",
+    },
+    "permanent_delete_hint": {
+        "en": "Deletion mode: permanent delete. Use --quarantine to move files aside instead.",
+        "zh": "删除模式：永久删除。可使用 --quarantine 改为移动到隔离目录。",
+    },
+    "quarantine_root": {
+        "en": "Quarantine root: {path}",
+        "zh": "隔离目录：{path}",
+    },
+    "dry_run_run": {
+        "en": "[DRY-RUN] run: {cmd}",
+        "zh": "[演练] 运行：{cmd}",
+    },
+    "dry_run_delete": {
+        "en": "[DRY-RUN] delete: {path}  # {reason}",
+        "zh": "[演练] 删除：{path}  # {reason}",
+    },
+    "move_path": {
+        "en": "[MOVE] {src} -> {dest}  # {reason}",
+        "zh": "[移动] {src} -> {dest}  # {reason}",
+    },
+    "delete_path": {
+        "en": "[DELETE] {path}  # {reason}",
+        "zh": "[删除] {path}  # {reason}",
+    },
+    "dry_run_terminate": {
+        "en": "[DRY-RUN] terminate process pid={pid}",
+        "zh": "[演练] 终止进程 pid={pid}",
+    },
+    "left_shared_skills": {
+        "en": "left shared AgentSkills directory intact: {path}; use --purge-shared-agent-skills to remove it",
+        "zh": "已保留共享 AgentSkills 目录：{path}；使用 --purge-shared-agent-skills 可删除",
+    },
+    "left_external_workspace": {
+        "en": "left external workspace intact: {path}; use --purge-external-workspaces to remove it",
+        "zh": "已保留外部工作区：{path}；使用 --purge-external-workspaces 可删除",
+    },
+    "left_extra_skill_dir": {
+        "en": "left extra skill dir intact: {path}; use --purge-extra-skill-dirs to remove it",
+        "zh": "已保留额外技能目录：{path}；使用 --purge-extra-skill-dirs 可删除",
+    },
+    "source_scan_limit": {
+        "en": "source scan stopped early after max directory limit",
+        "zh": "源码扫描达到最大目录数限制，已提前停止",
+    },
+    "source_candidate_unconfirmed": {
+        "en": "candidate source folder not auto-removed because it is not confirmed as OpenClaw repo: {path}",
+        "zh": "候选源码目录未确认是 OpenClaw 仓库，未自动删除：{path}",
+    },
+    "no_residue": {
+        "en": "No obvious OpenClaw/Moltbot/Clawbot residue found in checked locations.",
+        "zh": "在已检查位置未发现明显的 OpenClaw/Moltbot/Clawbot 残留。",
+    },
+    "summary_counts": {
+        "en": "Warnings: {warnings}  Errors: {errors}",
+        "zh": "警告：{warnings}  错误：{errors}",
+    },
+    "errors_hint": {
+        "en": "Some removals failed; re-run as the installing user, or with admin/root only for system-wide services.",
+        "zh": "部分删除失败；请以安装该软件的用户重新运行，只有系统级服务清理才需要管理员/root。",
+    },
+    "dry_run_hint": {
+        "en": "Dry-run only. Re-run with --yes after reviewing the planned actions.",
+        "zh": "当前仅为演练。检查计划操作后，可加 --yes 重新运行。",
+    },
+    "dry_run_report": {
+        "en": "[DRY-RUN] write JSON report: {path}",
+        "zh": "[演练] 写入 JSON 报告：{path}",
+    },
+    "report_written": {
+        "en": "[REPORT] {path}",
+        "zh": "[报告] {path}",
+    },
+    "report_failed": {
+        "en": "failed to write JSON report {path}: {error}",
+        "zh": "写入 JSON 报告失败 {path}: {error}",
+    },
+}
+
+
+def tr(key: str, lang: str = DEFAULT_LANG, **kwargs: Any) -> str:
+    entry = MESSAGES.get(key)
+    if not entry:
+        return key.format(**kwargs) if kwargs else key
+    text = entry.get(lang) or entry[DEFAULT_LANG]
+    return text.format(**kwargs)
+
+
+def normalize_lang(value: str) -> str:
+    v = (value or "").strip().lower()
+    if v in ("2", "zh", "cn", "zh-cn", "chinese", "中文"):
+        return "zh"
+    if v in ("1", "en", "en-us", "english"):
+        return "en"
+    return DEFAULT_LANG
+
 
 def lower(s: str) -> str:
     return s.lower()
@@ -113,8 +371,7 @@ def process_env_value_path_like(key: str, value: str) -> bool:
     if env_key_interesting(upper_key):
         return True
     key_is_pathish = any(token in upper_key for token in ("DIR", "PATH", "HOME", "CONFIG", "WORKSPACE", "SKILL", "PLUGIN", "GATEWAY"))
-    value_is_pathish = any(ch in value for ch in ("/", "\\", "~", "$", "%"))
-    return (contains_keyword(upper_key) and key_is_pathish) or (contains_keyword(value) and value_is_pathish)
+    return contains_keyword(upper_key) and key_is_pathish
 
 
 def quote_cmd(cmd: list[str]) -> str:
@@ -178,7 +435,7 @@ class Tee:
                 pass
 
 
-def setup_transcript(path: str) -> Optional[Any]:
+def setup_transcript(path: str, lang: str = DEFAULT_LANG) -> Optional[Any]:
     if not path:
         return None
     p = norm_path(Path(path))
@@ -186,11 +443,11 @@ def setup_transcript(path: str) -> Optional[Any]:
         p.parent.mkdir(parents=True, exist_ok=True)
         fp = p.open("a", encoding="utf-8")
     except Exception as e:
-        print(f"[WARN] could not open log file {p}: {e}")
+        print(f"[WARN] {tr('log_open_failed', lang, path=p, error=e)}")
         return None
     sys.stdout = Tee(sys.stdout, fp)  # type: ignore[assignment]
     sys.stderr = Tee(sys.stderr, fp)  # type: ignore[assignment]
-    print(f"[LOG] transcript: {p}")
+    print(f"[LOG] {tr('log_transcript', lang, path=p)}")
     return fp
 
 
@@ -210,13 +467,13 @@ def is_elevated() -> bool:
     return False
 
 
-def emit_privilege_hint(args: argparse.Namespace) -> None:
+def emit_privilege_hint(args: argparse.Namespace, lang: str = DEFAULT_LANG) -> None:
     if IS_WINDOWS:
         if not is_elevated():
-            print("[WARN] not running as Administrator; Windows services, HKLM registry keys, and machine environment variables may remain.")
+            print(f"[WARN] {tr('admin_hint_windows', lang)}")
         return
     if args.system_services and not is_elevated():
-        print("[WARN] --system-services was requested but this process is not root; system unit removals may fail.")
+        print(f"[WARN] {tr('admin_hint_linux', lang)}")
 
 
 def is_dangerous_path(p: Path) -> bool:
@@ -249,6 +506,7 @@ def is_dangerous_path(p: Path) -> bool:
 class Runner:
     def __init__(self, args: argparse.Namespace) -> None:
         self.args = args
+        self.lang = getattr(args, "lang", DEFAULT_LANG)
         self.dry_run = not args.yes
         self.seen_paths: set[str] = set()
         self.errors: list[str] = []
@@ -276,7 +534,7 @@ class Runner:
     def run_mutate(self, cmd: list[str], timeout: int = 120, ok_codes: Iterable[int] = (0,)) -> subprocess.CompletedProcess[str]:
         resolved = resolve_command(cmd)
         if self.dry_run:
-            print(f"[DRY-RUN] run: {quote_cmd(resolved)}")
+            print(tr("dry_run_run", self.lang, cmd=quote_cmd(resolved)))
             return subprocess.CompletedProcess(resolved, 0, "", "")
         print(f"[RUN] {quote_cmd(resolved)}")
         try:
@@ -284,16 +542,16 @@ class Runner:
             if cp.returncode not in set(ok_codes):
                 combined = (cp.stderr or cp.stdout or "").strip()
                 if combined:
-                    self.warn(f"command exited {cp.returncode}: {quote_cmd(resolved)} :: {combined[:400]}")
+                    self.warn(tr("cmd_exited", self.lang, code=cp.returncode, cmd=quote_cmd(resolved), output=combined[:400]))
             return cp
         except FileNotFoundError:
-            self.warn(f"command not found: {cmd[0]}")
+            self.warn(tr("cmd_not_found", self.lang, cmd=cmd[0]))
             return subprocess.CompletedProcess(resolved, 127, "", "not found")
         except subprocess.TimeoutExpired as e:
-            self.warn(f"command timed out: {quote_cmd(resolved)}")
+            self.warn(tr("cmd_timeout", self.lang, cmd=quote_cmd(resolved)))
             return subprocess.CompletedProcess(resolved, 124, e.stdout or "", e.stderr or "timeout")
         except Exception as e:
-            self.warn(f"command failed: {quote_cmd(resolved)} :: {e}")
+            self.warn(tr("cmd_failed", self.lang, cmd=quote_cmd(resolved), error=e))
             return subprocess.CompletedProcess(resolved, 1, "", str(e))
 
     def remove_path(self, path: Path, reason: str, *, allow_without_keyword: bool = False) -> None:
@@ -306,32 +564,32 @@ class Runner:
         if not p.exists() and not p.is_symlink():
             return
         if is_dangerous_path(p):
-            self.warn(f"skip dangerous path: {p} ({reason})")
+            self.warn(tr("skip_dangerous_path", self.lang, path=p, reason=reason))
             return
         if not allow_without_keyword and not contains_keyword(str(p)):
-            self.warn(f"skip path without OpenClaw/Moltbot/Clawbot keyword: {p} ({reason})")
+            self.warn(tr("skip_path_without_keyword", self.lang, path=p, reason=reason))
             return
 
         if self.dry_run:
-            print(f"[DRY-RUN] delete: {p}  # {reason}")
+            print(tr("dry_run_delete", self.lang, path=p, reason=reason))
             return
 
         try:
             if self.quarantine_root:
                 dest = self._quarantine_dest(p)
                 dest.parent.mkdir(parents=True, exist_ok=True)
-                print(f"[MOVE] {p} -> {dest}  # {reason}")
+                print(tr("move_path", self.lang, src=p, dest=dest, reason=reason))
                 shutil.move(str(p), str(dest))
                 self.removed.append(str(p))
                 return
-            print(f"[DELETE] {p}  # {reason}")
+            print(tr("delete_path", self.lang, path=p, reason=reason))
             if p.is_symlink() or p.is_file():
                 p.unlink(missing_ok=True)
             else:
                 shutil.rmtree(p, ignore_errors=False)
             self.removed.append(str(p))
         except Exception as e:
-            self.err(f"failed to remove {p}: {e}")
+            self.err(tr("remove_failed", self.lang, path=p, error=e))
 
     def _quarantine_dest(self, p: Path) -> Path:
         assert self.quarantine_root is not None
@@ -350,12 +608,26 @@ def which(cmd: str) -> Optional[str]:
     return shutil.which(cmd)
 
 
+def choose_language(raw_lang: str) -> str:
+    if raw_lang:
+        return normalize_lang(raw_lang)
+    if not sys.stdin.isatty():
+        return DEFAULT_LANG
+    print(tr("language_menu", "zh"))
+    try:
+        selected = input(tr("language_prompt", "zh"))
+    except EOFError:
+        return DEFAULT_LANG
+    return normalize_lang(selected or "zh")
+
+
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(
         description="Purge OpenClaw / Moltbot / Clawdbot / ClawBot from Windows or Linux. Default: dry-run.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     ap.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    ap.add_argument("--lang", choices=("en", "zh"), default="", help="output language; omit in an interactive terminal to choose at startup")
     ap.add_argument("--yes", action="store_true", help="actually perform removals; without this only prints a dry-run plan")
     ap.add_argument("--quarantine", action="store_true", help="move files to a quarantine directory instead of permanently deleting them")
     ap.add_argument("--backup-root", default="", help="quarantine directory when --quarantine is used")
@@ -376,6 +648,7 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--no-kill", action="store_true", help="do not terminate remaining OpenClaw/Moltbot/Clawbot processes")
     ap.add_argument("--no-npx", action="store_true", help="do not use npx fallback when the openclaw CLI is missing")
     args = ap.parse_args()
+    args.lang = choose_language(args.lang)
     if args.everything:
         args.purge_docker = True
         args.scan_source = True
@@ -601,7 +874,7 @@ def find_paths_in_config(obj: Any, base_dir: Path, args: argparse.Namespace) -> 
 
 
 def official_cli_uninstall(r: Runner) -> None:
-    r.info("\n== Built-in CLI uninstall / gateway stop ==")
+    r.info(tr("section_cli", r.lang))
     found_any_cli = False
     for cmd in CLI_NAMES:
         exe = which(cmd)
@@ -621,7 +894,7 @@ def official_cli_uninstall(r: Runner) -> None:
 def linux_systemd_cleanup(r: Runner) -> None:
     if not IS_LINUX:
         return
-    r.info("\n== Linux systemd user services ==")
+    r.info(tr("section_linux_user_services", r.lang))
     user_unit_dir = HOME / ".config" / "systemd" / "user"
     units: set[str] = {
         "openclaw-gateway.service", "moltbot-gateway.service", "clawdbot-gateway.service", "clawbot-gateway.service",
@@ -639,7 +912,7 @@ def linux_systemd_cleanup(r: Runner) -> None:
         r.run_mutate(["systemctl", "--user", "daemon-reload"], ok_codes=(0, 1, 127))
 
     if r.args.system_services:
-        r.info("\n== Linux systemd system services ==")
+        r.info(tr("section_linux_system_services", r.lang))
         system_dirs = [Path("/etc/systemd/system"), Path("/usr/lib/systemd/system"), Path("/lib/systemd/system")]
         sys_units: set[str] = set()
         for d in system_dirs:
@@ -659,7 +932,7 @@ def linux_systemd_cleanup(r: Runner) -> None:
 def windows_task_cleanup(r: Runner) -> None:
     if not IS_WINDOWS:
         return
-    r.info("\n== Windows Scheduled Tasks ==")
+    r.info(tr("section_windows_tasks", r.lang))
     cp = r.run_read(["schtasks", "/Query", "/FO", "CSV", "/V"], timeout=60)
     task_names: set[str] = {"\\OpenClaw Gateway", "OpenClaw Gateway"}
     if cp.returncode == 0 and cp.stdout.strip():
@@ -678,7 +951,7 @@ def windows_task_cleanup(r: Runner) -> None:
 def windows_service_cleanup(r: Runner) -> None:
     if not IS_WINDOWS:
         return
-    r.info("\n== Windows Services ==")
+    r.info(tr("section_windows_services", r.lang))
     ps = which("powershell") or which("powershell.exe") or which("pwsh")
     if not ps:
         return
@@ -709,7 +982,7 @@ $items | ConvertTo-Json -Compress
 def terminate_processes(r: Runner) -> None:
     if r.args.no_kill:
         return
-    r.info("\n== Remaining process cleanup ==")
+    r.info(tr("section_processes", r.lang))
     current_pid = os.getpid()
     parent_pid = os.getppid()
     if IS_LINUX:
@@ -744,7 +1017,7 @@ def terminate_processes(r: Runner) -> None:
                 pids.append(pid)
         for pid in sorted(set(pids)):
             if r.dry_run:
-                print(f"[DRY-RUN] terminate process pid={pid}")
+                print(tr("dry_run_terminate", r.lang, pid=pid))
             else:
                 try:
                     print(f"[TERM] pid={pid}")
@@ -833,7 +1106,7 @@ def discover_pnpm_global_packages() -> set[str]:
 
 
 def package_manager_cleanup(r: Runner) -> None:
-    r.info("\n== Package manager global uninstall ==")
+    r.info(tr("section_package_manager", r.lang))
     npm_pkgs = discover_npm_global_packages()
     pnpm_pkgs = discover_pnpm_global_packages()
     if which("npm"):
@@ -865,7 +1138,7 @@ def package_manager_cleanup(r: Runner) -> None:
 def nix_cleanup(r: Runner) -> None:
     if not which("nix") and not which("nix-env"):
         return
-    r.info("\n== Nix profile cleanup ==")
+    r.info(tr("section_nix", r.lang))
     if which("nix"):
         cp = r.run_read(["nix", "profile", "list"], timeout=60)
         if cp.returncode == 0:
@@ -893,7 +1166,7 @@ def nix_cleanup(r: Runner) -> None:
 def docker_like_cleanup(r: Runner, tool: str) -> None:
     if not which(tool):
         return
-    r.info(f"\n== {tool} containers/images/volumes/networks ==")
+    r.info(tr("section_docker", r.lang, tool=tool))
     # Containers.
     cp = r.run_read([tool, "container", "ls", "-a", "--format", "{{.ID}}\t{{.Names}}\t{{.Image}}"], timeout=60)
     if cp.returncode == 0:
@@ -958,7 +1231,7 @@ def package_cache_paths() -> list[Path]:
 
 
 def remove_files(r: Runner, initial_paths: list[Path], config_files: list[Path]) -> None:
-    r.info("\n== File and directory cleanup ==")
+    r.info(tr("section_files", r.lang))
     # Parse configs before deleting them.
     discovered_workspaces: list[Path] = []
     discovered_managed: list[Path] = []
@@ -990,7 +1263,7 @@ def remove_files(r: Runner, initial_paths: list[Path], config_files: list[Path])
     else:
         for p in shared_agent_paths:
             if p.exists():
-                r.warn(f"left shared AgentSkills directory intact: {p}; use --purge-shared-agent-skills to remove it")
+                r.warn(tr("left_shared_skills", r.lang, path=p))
 
     # Workspaces: default state workspaces are already removed with state dir. External needs explicit flag.
     for ws in dedupe_paths(discovered_workspaces):
@@ -998,7 +1271,7 @@ def remove_files(r: Runner, initial_paths: list[Path], config_files: list[Path])
         if under_state or contains_keyword(str(ws)) or r.args.purge_external_workspaces:
             r.remove_path(ws, "workspace discovered in config", allow_without_keyword=r.args.purge_external_workspaces)
         else:
-            r.warn(f"left external workspace intact: {ws}; use --purge-external-workspaces to remove it")
+            r.warn(tr("left_external_workspace", r.lang, path=ws))
 
     if r.args.purge_extra_skill_dirs:
         for p in dedupe_paths(discovered_extra_skills):
@@ -1006,7 +1279,7 @@ def remove_files(r: Runner, initial_paths: list[Path], config_files: list[Path])
     else:
         for p in dedupe_paths(discovered_extra_skills):
             if p.exists():
-                r.warn(f"left extra skill dir intact: {p}; use --purge-extra-skill-dirs to remove it")
+                r.warn(tr("left_extra_skill_dir", r.lang, path=p))
 
     if r.args.purge_caches:
         for p in package_cache_paths():
@@ -1026,7 +1299,7 @@ def is_subpath(child: Path, parent: Path) -> bool:
 def scan_source_repos(r: Runner) -> None:
     if not r.args.scan_source:
         return
-    r.info("\n== Source checkout scan ==")
+    r.info(tr("section_source", r.lang))
     common_roots = [
         HOME, HOME / "Desktop", HOME / "Documents", HOME / "Downloads", HOME / "Projects", HOME / "projects",
         HOME / "Code", HOME / "code", HOME / "src", HOME / "workspace", HOME / "Work", HOME / "dev",
@@ -1050,7 +1323,7 @@ def scan_source_repos(r: Runner) -> None:
         for dirpath, dirnames, filenames in os.walk(root):
             walked += 1
             if walked > max_dirs:
-                r.warn("source scan stopped early after max directory limit")
+                r.warn(tr("source_scan_limit", r.lang))
                 break
             dp = Path(dirpath)
             try:
@@ -1080,7 +1353,7 @@ def scan_source_repos(r: Runner) -> None:
         if source_checkout_confirmed(p):
             r.remove_path(p, "confirmed source checkout")
         else:
-            r.warn(f"candidate source folder not auto-removed because it is not confirmed as OpenClaw repo: {p}")
+            r.warn(tr("source_candidate_unconfirmed", r.lang, path=p))
 
 
 def source_checkout_confirmed(p: Path) -> bool:
@@ -1110,7 +1383,7 @@ def source_checkout_confirmed(p: Path) -> bool:
 def clean_shell_rc(r: Runner) -> None:
     if not r.args.clean_shell_rc or IS_WINDOWS:
         return
-    r.info("\n== Shell rc/profile cleanup ==")
+    r.info(tr("section_shell_rc", r.lang))
     files = [
         HOME / ".bashrc", HOME / ".bash_profile", HOME / ".profile", HOME / ".zshrc", HOME / ".zprofile",
         HOME / ".config" / "fish" / "config.fish",
@@ -1142,7 +1415,7 @@ def clean_shell_rc(r: Runner) -> None:
 def clean_windows_user_env(r: Runner) -> None:
     if not IS_WINDOWS:
         return
-    r.info("\n== Windows user environment variables ==")
+    r.info(tr("section_windows_user_env", r.lang))
     ps = which("powershell") or which("powershell.exe") or which("pwsh")
     if not ps:
         return
@@ -1174,7 +1447,7 @@ $vars | ConvertTo-Json -Compress
 def clean_windows_machine_env(r: Runner) -> None:
     if not IS_WINDOWS or not r.args.clean_machine_env:
         return
-    r.info("\n== Windows machine environment variables ==")
+    r.info(tr("section_windows_machine_env", r.lang))
     ps = which("powershell") or which("powershell.exe") or which("pwsh")
     if not ps:
         return
@@ -1205,7 +1478,7 @@ $vars | ConvertTo-Json -Compress
 def clean_windows_powershell_profiles(r: Runner) -> None:
     if not IS_WINDOWS or not r.args.clean_shell_rc:
         return
-    r.info("\n== Windows PowerShell profile cleanup ==")
+    r.info(tr("section_windows_ps_profiles", r.lang))
     docs = Path(os.environ.get("USERPROFILE", str(HOME))) / "Documents"
     files = [
         HOME / "Documents" / "PowerShell" / "Microsoft.PowerShell_profile.ps1",
@@ -1261,7 +1534,7 @@ def reg_key_has_keyword(key: str) -> bool:
 def clean_windows_registry(r: Runner) -> None:
     if not IS_WINDOWS or not r.args.clean_registry or not which("reg.exe"):
         return
-    r.info("\n== Windows registry cleanup ==")
+    r.info(tr("section_windows_registry", r.lang))
     exact_keys = [
         r"HKCU\Software\OpenClaw", r"HKCU\Software\MoltBot", r"HKCU\Software\Moltbot",
         r"HKCU\Software\Clawdbot", r"HKCU\Software\ClawBot", r"HKCU\Software\Clawbot",
@@ -1332,7 +1605,7 @@ $hits | ConvertTo-Json -Compress
 def vscode_extension_cleanup(r: Runner) -> None:
     if not r.args.purge_vscode_extensions:
         return
-    r.info("\n== VS Code extension cleanup ==")
+    r.info(tr("section_vscode", r.lang))
     code_bins = ["code", "code-insiders", "codium"]
     for bin_name in code_bins:
         if not which(bin_name):
@@ -1346,7 +1619,7 @@ def vscode_extension_cleanup(r: Runner) -> None:
 
 
 def final_residue_report(r: Runner) -> None:
-    r.info("\n== Residue check ==")
+    r.info(tr("section_residue", r.lang))
     suspects: list[str] = []
     # Command presence.
     for cmd in list(CLI_NAMES) + ["clawhub"]:
@@ -1364,7 +1637,7 @@ def final_residue_report(r: Runner) -> None:
         if len(suspects) > 200:
             print(f"[LEFT] ... {len(suspects)-200} more")
     else:
-        print("No obvious OpenClaw/Moltbot/Clawbot residue found in checked locations.")
+        print(tr("no_residue", r.lang))
 
 
 def write_json_report(r: Runner, args: argparse.Namespace) -> None:
@@ -1383,28 +1656,31 @@ def write_json_report(r: Runner, args: argparse.Namespace) -> None:
     }
     p = norm_path(Path(args.report_json))
     if r.dry_run:
-        print(f"[DRY-RUN] write JSON report: {p}")
+        print(tr("dry_run_report", r.lang, path=p))
         return
     try:
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        print(f"[REPORT] {p}")
+        print(tr("report_written", r.lang, path=p))
     except Exception as e:
-        r.err(f"failed to write JSON report {p}: {e}")
+        r.err(tr("report_failed", r.lang, path=p, error=e))
 
 
 def main() -> int:
     args = parse_args()
-    log_fp = setup_transcript(args.log_file)
+    lang = args.lang
+    log_fp = setup_transcript(args.log_file, lang)
     r = Runner(args)
-    print("OpenClaw / Moltbot / Clawdbot / ClawBot full uninstaller")
-    print(f"Platform: {platform.platform()}  Python: {sys.version.split()[0]}")
-    print(f"Mode: {'APPLY (will delete)' if args.yes else 'DRY-RUN (no changes)'}")
-    emit_privilege_hint(args)
+    print(tr("language_selected", lang))
+    print(tr("app_title", lang))
+    print(tr("platform_line", lang, platform=platform.platform(), python=sys.version.split()[0]))
+    mode = tr("mode_apply", lang) if args.yes else tr("mode_dry_run", lang)
+    print(tr("mode_line", lang, mode=mode))
+    emit_privilege_hint(args, lang)
     if args.yes and not args.quarantine:
-        print("Deletion mode: permanent delete. Use --quarantine to move files aside instead.")
+        print(tr("permanent_delete_hint", lang))
     if args.quarantine:
-        print(f"Quarantine root: {r.quarantine_root}")
+        print(tr("quarantine_root", lang, path=r.quarantine_root))
 
     initial_paths, config_files = collect_state_and_config_paths(args)
 
@@ -1428,13 +1704,14 @@ def main() -> int:
     final_residue_report(r)
     write_json_report(r, args)
 
-    print("\n== Summary ==")
-    print(f"Mode: {'APPLY' if args.yes else 'DRY-RUN'}")
-    print(f"Warnings: {len(r.warned)}  Errors: {len(r.errors)}")
+    print(tr("section_summary", lang))
+    short_mode = tr("mode_apply_short", lang) if args.yes else tr("mode_dry_run_short", lang)
+    print(tr("mode_line", lang, mode=short_mode))
+    print(tr("summary_counts", lang, warnings=len(r.warned), errors=len(r.errors)))
     if r.errors:
-        print("Some removals failed; re-run as the installing user, or with admin/root only for system-wide services.")
+        print(tr("errors_hint", lang))
     if not args.yes:
-        print("Dry-run only. Re-run with --yes after reviewing the planned actions.")
+        print(tr("dry_run_hint", lang))
     if log_fp:
         log_fp.close()
     return 1 if r.errors else 0

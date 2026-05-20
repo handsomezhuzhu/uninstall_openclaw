@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 import openclaw_full_uninstall as uninstall
 
@@ -68,6 +69,45 @@ class UninstallTests(unittest.TestCase):
 
             self.assertIsNone(uninstall.expand_config_path("https://example.com/openclaw", root))
             self.assertEqual(uninstall.norm_path(root / "state"), uninstall.expand_config_path("state", root))
+
+    def test_language_normalization(self) -> None:
+        self.assertEqual("zh", uninstall.normalize_lang("2"))
+        self.assertEqual("zh", uninstall.normalize_lang("zh-CN"))
+        self.assertEqual("en", uninstall.normalize_lang("1"))
+        self.assertEqual("en", uninstall.normalize_lang("english"))
+
+    def test_process_env_does_not_trust_unrelated_openclaw_value(self) -> None:
+        self.assertFalse(uninstall.process_env_value_path_like("PWD", r"E:\uninstall_openclaw"))
+        self.assertTrue(uninstall.process_env_value_path_like("OPENCLAW_STATE_DIR", r"E:\state"))
+
+    def test_parse_args_accepts_lang_without_prompt(self) -> None:
+        with patch("sys.argv", ["openclaw_full_uninstall.py", "--lang", "zh", "--no-npx", "--no-kill"]):
+            args = uninstall.parse_args()
+
+        self.assertEqual("zh", args.lang)
+
+    def test_parse_args_non_interactive_defaults_to_english(self) -> None:
+        class NonInteractiveInput(io.StringIO):
+            def isatty(self) -> bool:
+                return False
+
+        with patch("sys.argv", ["openclaw_full_uninstall.py"]), patch("sys.stdin", NonInteractiveInput()):
+            args = uninstall.parse_args()
+
+        self.assertEqual("en", args.lang)
+
+    def test_runner_uses_chinese_dry_run_output(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "openclaw-state"
+            path.mkdir()
+            args = argparse.Namespace(yes=False, quarantine=False, backup_root="", lang="zh")
+            runner = uninstall.Runner(args)
+            out = io.StringIO()
+
+            with redirect_stdout(out):
+                runner.remove_path(path, "test")
+
+            self.assertIn("[演练] 删除", out.getvalue())
 
 
 if __name__ == "__main__":
