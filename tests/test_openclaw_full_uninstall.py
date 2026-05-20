@@ -81,10 +81,11 @@ class UninstallTests(unittest.TestCase):
         self.assertTrue(uninstall.process_env_value_path_like("OPENCLAW_STATE_DIR", r"E:\state"))
 
     def test_parse_args_accepts_lang_without_prompt(self) -> None:
-        with patch("sys.argv", ["openclaw_full_uninstall.py", "--lang", "zh", "--no-npx", "--no-kill"]):
+        with patch("sys.argv", ["openclaw_full_uninstall.py", "--lang", "zh", "--no-color", "--no-npx", "--no-kill"]):
             args = uninstall.parse_args()
 
         self.assertEqual("zh", args.lang)
+        self.assertTrue(args.no_color)
 
     def test_parse_args_non_interactive_defaults_to_english(self) -> None:
         class NonInteractiveInput(io.StringIO):
@@ -116,6 +117,13 @@ class UninstallTests(unittest.TestCase):
 
         self.assertEqual("", cp.stdout)
         self.assertEqual("", cp.stderr)
+
+    def test_terminal_rendering_helpers(self) -> None:
+        menu = uninstall.render_language_menu("zh")
+        self.assertIn("语言", uninstall.strip_ansi(menu))
+        self.assertIn("English", uninstall.strip_ansi(menu))
+        section = uninstall.render_section("Summary")
+        self.assertIn("Summary", uninstall.strip_ansi(section))
 
 
 if __name__ == "__main__":

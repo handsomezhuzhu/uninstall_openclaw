@@ -30,6 +30,7 @@ py -3 openclaw_full_uninstall.py --lang en
 ```
 
 非交互环境没有传 `--lang` 时默认使用英文，避免脚本卡住等待输入。
+脚本会在 Windows 和 Linux 终端中自动使用颜色和更清晰的分区输出；需要纯文本时可使用 `--no-color`，或设置环境变量 `NO_COLOR=1`。
 
 ### 快速开始
 
@@ -69,6 +70,7 @@ python3 openclaw_full_uninstall.py --lang zh --yes --quarantine --purge-docker -
 | 参数 | 含义 |
 | --- | --- |
 | `--lang zh\|en` | 输出语言。省略时，交互终端会提示选择；非交互环境默认英文。 |
+| `--no-color` | 禁用 ANSI 颜色和终端样式，适合老终端或日志采集。 |
 | `--yes` | 执行清理。没有这个参数时只做演练。 |
 | `--quarantine` | 移动到隔离目录，而不是永久删除。 |
 | `--backup-root PATH` | 指定隔离目录。 |
@@ -126,6 +128,7 @@ py -3 openclaw_full_uninstall.py --lang zh
 ```
 
 In non-interactive environments, the script defaults to English when `--lang` is omitted, so it will not block waiting for input.
+The script automatically uses color and clearer section formatting on Windows and Linux terminals. Use `--no-color`, or set `NO_COLOR=1`, when plain text is preferred.
 
 ### Quick start
 
@@ -165,6 +168,7 @@ python3 openclaw_full_uninstall.py --lang en --yes --quarantine --purge-docker -
 | Flag | Meaning |
 | --- | --- |
 | `--lang zh\|en` | Output language. Omit it in an interactive terminal to choose at startup; non-interactive mode defaults to English. |
+| `--no-color` | Disable ANSI colors and styled terminal output for older terminals or log capture. |
 | `--yes` | Apply changes. Without it, the script is dry-run only. |
 | `--quarantine` | Move files to a quarantine folder instead of deleting them permanently. |
 | `--backup-root PATH` | Choose the quarantine folder. |

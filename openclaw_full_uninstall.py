@@ -35,6 +35,7 @@ import signal
 import subprocess
 import sys
 import time
+import unicodedata
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Optional
 
@@ -77,15 +78,56 @@ SKIP_WALK_DIRS = {
 }
 
 DEFAULT_LANG = "en"
+ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+COLOR_ENABLED = False
+
+ANSI = {
+    "reset": "\033[0m",
+    "bold": "\033[1m",
+    "dim": "\033[2m",
+    "red": "\033[31m",
+    "green": "\033[32m",
+    "yellow": "\033[33m",
+    "blue": "\033[34m",
+    "magenta": "\033[35m",
+    "cyan": "\033[36m",
+    "gray": "\033[90m",
+}
+
+STATUS_COLORS = {
+    "[WARN]": "yellow",
+    "[ERR]": "red",
+    "[RUN]": "green",
+    "[DRY-RUN]": "blue",
+    "[演练]": "blue",
+    "[MOVE]": "green",
+    "[移动]": "green",
+    "[DELETE]": "red",
+    "[删除]": "red",
+    "[LEFT]": "yellow",
+    "[REPORT]": "green",
+    "[报告]": "green",
+    "[LOG]": "cyan",
+    "[TERM]": "yellow",
+    "[KILL]": "red",
+}
 
 MESSAGES = {
     "language_menu": {
-        "en": "Language / 语言: [1] English  [2] 中文",
-        "zh": "语言 / Language: [1] English  [2] 中文",
+        "en": "Language / 语言",
+        "zh": "语言 / Language",
     },
     "language_prompt": {
-        "en": "Select language / 请选择语言 (1/en, 2/zh) [2]: ",
-        "zh": "请选择语言 / Select language (1/en, 2/zh) [2]: ",
+        "en": "Select language / 请选择语言 [2]: ",
+        "zh": "请选择语言 / Select language [2]: ",
+    },
+    "language_option_en": {
+        "en": "1  English",
+        "zh": "1  English",
+    },
+    "language_option_zh": {
+        "en": "2  中文",
+        "zh": "2  中文",
     },
     "language_selected": {
         "en": "Language: English",
@@ -136,80 +178,80 @@ MESSAGES = {
         "zh": "删除失败 {path}: {error}",
     },
     "section_cli": {
-        "en": "\n== Built-in CLI uninstall / gateway stop ==",
-        "zh": "\n== 内置 CLI 卸载 / 网关停止 ==",
+        "en": "Built-in CLI uninstall / gateway stop",
+        "zh": "内置 CLI 卸载 / 网关停止",
     },
     "section_linux_user_services": {
-        "en": "\n== Linux systemd user services ==",
-        "zh": "\n== Linux systemd 用户服务 ==",
+        "en": "Linux systemd user services",
+        "zh": "Linux systemd 用户服务",
     },
     "section_linux_system_services": {
-        "en": "\n== Linux systemd system services ==",
-        "zh": "\n== Linux systemd 系统服务 ==",
+        "en": "Linux systemd system services",
+        "zh": "Linux systemd 系统服务",
     },
     "section_windows_tasks": {
-        "en": "\n== Windows Scheduled Tasks ==",
-        "zh": "\n== Windows 计划任务 ==",
+        "en": "Windows Scheduled Tasks",
+        "zh": "Windows 计划任务",
     },
     "section_windows_services": {
-        "en": "\n== Windows Services ==",
-        "zh": "\n== Windows 服务 ==",
+        "en": "Windows Services",
+        "zh": "Windows 服务",
     },
     "section_processes": {
-        "en": "\n== Remaining process cleanup ==",
-        "zh": "\n== 剩余进程清理 ==",
+        "en": "Remaining process cleanup",
+        "zh": "剩余进程清理",
     },
     "section_package_manager": {
-        "en": "\n== Package manager global uninstall ==",
-        "zh": "\n== 包管理器全局卸载 ==",
+        "en": "Package manager global uninstall",
+        "zh": "包管理器全局卸载",
     },
     "section_nix": {
-        "en": "\n== Nix profile cleanup ==",
-        "zh": "\n== Nix profile 清理 ==",
+        "en": "Nix profile cleanup",
+        "zh": "Nix profile 清理",
     },
     "section_docker": {
-        "en": "\n== {tool} containers/images/volumes/networks ==",
-        "zh": "\n== {tool} 容器/镜像/卷/网络 ==",
+        "en": "{tool} containers/images/volumes/networks",
+        "zh": "{tool} 容器/镜像/卷/网络",
     },
     "section_files": {
-        "en": "\n== File and directory cleanup ==",
-        "zh": "\n== 文件和目录清理 ==",
+        "en": "File and directory cleanup",
+        "zh": "文件和目录清理",
     },
     "section_source": {
-        "en": "\n== Source checkout scan ==",
-        "zh": "\n== 源码仓库扫描 ==",
+        "en": "Source checkout scan",
+        "zh": "源码仓库扫描",
     },
     "section_shell_rc": {
-        "en": "\n== Shell rc/profile cleanup ==",
-        "zh": "\n== Shell rc/profile 清理 ==",
+        "en": "Shell rc/profile cleanup",
+        "zh": "Shell rc/profile 清理",
     },
     "section_windows_user_env": {
-        "en": "\n== Windows user environment variables ==",
-        "zh": "\n== Windows 用户环境变量 ==",
+        "en": "Windows user environment variables",
+        "zh": "Windows 用户环境变量",
     },
     "section_windows_machine_env": {
-        "en": "\n== Windows machine environment variables ==",
-        "zh": "\n== Windows 机器级环境变量 ==",
+        "en": "Windows machine environment variables",
+        "zh": "Windows 机器级环境变量",
     },
     "section_windows_ps_profiles": {
-        "en": "\n== Windows PowerShell profile cleanup ==",
-        "zh": "\n== Windows PowerShell profile 清理 ==",
+        "en": "Windows PowerShell profile cleanup",
+        "zh": "Windows PowerShell profile 清理",
     },
     "section_windows_registry": {
-        "en": "\n== Windows registry cleanup ==",
-        "zh": "\n== Windows 注册表清理 ==",
+        "en": "Windows registry cleanup",
+        "zh": "Windows 注册表清理",
     },
     "section_vscode": {
-        "en": "\n== VS Code extension cleanup ==",
-        "zh": "\n== VS Code 扩展清理 ==",
+        "en": "VS Code extension cleanup",
+        "zh": "VS Code 扩展清理",
     },
     "section_residue": {
-        "en": "\n== Residue check ==",
-        "zh": "\n== 残留检查 ==",
+        "en": "Residue check",
+        "zh": "残留检查",
     },
     "section_summary": {
-        "en": "\n== Summary ==",
-        "zh": "\n== 汇总 ==",
+        "en": "Summary",
+        "zh": "汇总",
     },
     "app_title": {
         "en": "OpenClaw / Moltbot / Clawdbot / ClawBot full uninstaller",
@@ -324,6 +366,87 @@ def tr(key: str, lang: str = DEFAULT_LANG, **kwargs: Any) -> str:
         return key.format(**kwargs) if kwargs else key
     text = entry.get(lang) or entry[DEFAULT_LANG]
     return text.format(**kwargs)
+
+
+def strip_ansi(text: str) -> str:
+    return ANSI_RE.sub("", text)
+
+
+def visible_len(text: str) -> int:
+    width = 0
+    for ch in strip_ansi(text):
+        if unicodedata.combining(ch):
+            continue
+        width += 2 if unicodedata.east_asian_width(ch) in ("F", "W") else 1
+    return width
+
+
+def pad_visible(text: str, width: int) -> str:
+    return text + " " * max(0, width - visible_len(text))
+
+
+def style(text: str, *names: str) -> str:
+    if not COLOR_ENABLED:
+        return text
+    prefix = "".join(ANSI[name] for name in names if name in ANSI)
+    return f"{prefix}{text}{ANSI['reset']}" if prefix else text
+
+
+def color_status(line: str) -> str:
+    for tag, color in STATUS_COLORS.items():
+        if line.startswith(tag):
+            return style(tag, "bold", color) + line[len(tag):]
+    return line
+
+
+def emit(line: str = "") -> None:
+    print(color_status(line))
+
+
+def render_section(title: str) -> str:
+    return "\n" + style(f"== {title} ==", "bold", "cyan")
+
+
+def render_banner(title: str, lines: list[str]) -> str:
+    width = max([visible_len(title)] + [visible_len(line) for line in lines] + [40])
+    width = min(max(width, 44), 88)
+    top = "+" + "-" * (width + 2) + "+"
+    body = [top, "| " + style(pad_visible(title, width), "bold", "cyan") + " |"]
+    if lines:
+        body.append("| " + " " * width + " |")
+    for line in lines:
+        body.append("| " + pad_visible(line, width) + " |")
+    body.append(top)
+    return "\n".join(body)
+
+
+def render_language_menu(lang: str) -> str:
+    title = style(tr("language_menu", lang), "bold", "cyan")
+    option_1 = "  " + style(tr("language_option_en", lang), "bold")
+    option_2 = "  " + style(tr("language_option_zh", lang), "bold")
+    hint = style("Enter 1/en or 2/zh", "dim")
+    return "\n".join([title, option_1, option_2, hint])
+
+
+def configure_console(no_color: bool = False) -> None:
+    global COLOR_ENABLED
+    if no_color or os.environ.get("NO_COLOR"):
+        COLOR_ENABLED = False
+        return
+    COLOR_ENABLED = sys.stdout.isatty()
+    if not COLOR_ENABLED:
+        return
+    if IS_WINDOWS:
+        try:
+            import ctypes
+
+            kernel32 = ctypes.windll.kernel32
+            handle = kernel32.GetStdHandle(-11)
+            mode = ctypes.c_uint32()
+            if kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+                kernel32.SetConsoleMode(handle, mode.value | 0x0004)
+        except Exception:
+            pass
 
 
 def normalize_lang(value: str) -> str:
@@ -462,11 +585,11 @@ def setup_transcript(path: str, lang: str = DEFAULT_LANG) -> Optional[Any]:
         p.parent.mkdir(parents=True, exist_ok=True)
         fp = p.open("a", encoding="utf-8")
     except Exception as e:
-        print(f"[WARN] {tr('log_open_failed', lang, path=p, error=e)}")
+        emit(f"[WARN] {tr('log_open_failed', lang, path=p, error=e)}")
         return None
     sys.stdout = Tee(sys.stdout, fp)  # type: ignore[assignment]
     sys.stderr = Tee(sys.stderr, fp)  # type: ignore[assignment]
-    print(f"[LOG] {tr('log_transcript', lang, path=p)}")
+    emit(f"[LOG] {tr('log_transcript', lang, path=p)}")
     return fp
 
 
@@ -489,10 +612,10 @@ def is_elevated() -> bool:
 def emit_privilege_hint(args: argparse.Namespace, lang: str = DEFAULT_LANG) -> None:
     if IS_WINDOWS:
         if not is_elevated():
-            print(f"[WARN] {tr('admin_hint_windows', lang)}")
+            emit(f"[WARN] {tr('admin_hint_windows', lang)}")
         return
     if args.system_services and not is_elevated():
-        print(f"[WARN] {tr('admin_hint_linux', lang)}")
+        emit(f"[WARN] {tr('admin_hint_linux', lang)}")
 
 
 def is_dangerous_path(p: Path) -> bool:
@@ -537,15 +660,15 @@ class Runner:
             self.quarantine_root = norm_path(root)
 
     def info(self, msg: str) -> None:
-        print(msg)
+        emit(msg)
 
     def warn(self, msg: str) -> None:
         self.warned.append(msg)
-        print(f"[WARN] {msg}")
+        emit(f"[WARN] {msg}")
 
     def err(self, msg: str) -> None:
         self.errors.append(msg)
-        print(f"[ERR] {msg}")
+        emit(f"[ERR] {msg}")
 
     def run_read(self, cmd: list[str], timeout: int = 60) -> subprocess.CompletedProcess[str]:
         return run_read_plain(cmd, timeout=timeout)
@@ -553,9 +676,9 @@ class Runner:
     def run_mutate(self, cmd: list[str], timeout: int = 120, ok_codes: Iterable[int] = (0,)) -> subprocess.CompletedProcess[str]:
         resolved = resolve_command(cmd)
         if self.dry_run:
-            print(tr("dry_run_run", self.lang, cmd=quote_cmd(resolved)))
+            emit(tr("dry_run_run", self.lang, cmd=quote_cmd(resolved)))
             return subprocess.CompletedProcess(resolved, 0, "", "")
-        print(f"[RUN] {quote_cmd(resolved)}")
+        emit(f"[RUN] {quote_cmd(resolved)}")
         cp = safe_subprocess_run(resolved, timeout=timeout)
         if cp.returncode == 127 and cp.stderr == "not found":
             self.warn(tr("cmd_not_found", self.lang, cmd=cmd[0]))
@@ -584,18 +707,18 @@ class Runner:
             return
 
         if self.dry_run:
-            print(tr("dry_run_delete", self.lang, path=p, reason=reason))
+            emit(tr("dry_run_delete", self.lang, path=p, reason=reason))
             return
 
         try:
             if self.quarantine_root:
                 dest = self._quarantine_dest(p)
                 dest.parent.mkdir(parents=True, exist_ok=True)
-                print(tr("move_path", self.lang, src=p, dest=dest, reason=reason))
+                emit(tr("move_path", self.lang, src=p, dest=dest, reason=reason))
                 shutil.move(str(p), str(dest))
                 self.removed.append(str(p))
                 return
-            print(tr("delete_path", self.lang, path=p, reason=reason))
+            emit(tr("delete_path", self.lang, path=p, reason=reason))
             if p.is_symlink() or p.is_file():
                 p.unlink(missing_ok=True)
             else:
@@ -626,9 +749,9 @@ def choose_language(raw_lang: str) -> str:
         return normalize_lang(raw_lang)
     if not sys.stdin.isatty():
         return DEFAULT_LANG
-    print(tr("language_menu", "zh"))
+    emit(render_language_menu("zh"))
     try:
-        selected = input(tr("language_prompt", "zh"))
+        selected = input(style(tr("language_prompt", "zh"), "bold", "green"))
     except EOFError:
         return DEFAULT_LANG
     return normalize_lang(selected or "zh")
@@ -641,6 +764,7 @@ def parse_args() -> argparse.Namespace:
     )
     ap.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     ap.add_argument("--lang", choices=("en", "zh"), default="", help="output language; omit in an interactive terminal to choose at startup")
+    ap.add_argument("--no-color", action="store_true", help="disable ANSI colors and styled terminal output")
     ap.add_argument("--yes", action="store_true", help="actually perform removals; without this only prints a dry-run plan")
     ap.add_argument("--quarantine", action="store_true", help="move files to a quarantine directory instead of permanently deleting them")
     ap.add_argument("--backup-root", default="", help="quarantine directory when --quarantine is used")
@@ -887,7 +1011,7 @@ def find_paths_in_config(obj: Any, base_dir: Path, args: argparse.Namespace) -> 
 
 
 def official_cli_uninstall(r: Runner) -> None:
-    r.info(tr("section_cli", r.lang))
+    r.info(render_section(tr("section_cli", r.lang)))
     found_any_cli = False
     for cmd in CLI_NAMES:
         exe = which(cmd)
@@ -907,7 +1031,7 @@ def official_cli_uninstall(r: Runner) -> None:
 def linux_systemd_cleanup(r: Runner) -> None:
     if not IS_LINUX:
         return
-    r.info(tr("section_linux_user_services", r.lang))
+    r.info(render_section(tr("section_linux_user_services", r.lang)))
     user_unit_dir = HOME / ".config" / "systemd" / "user"
     units: set[str] = {
         "openclaw-gateway.service", "moltbot-gateway.service", "clawdbot-gateway.service", "clawbot-gateway.service",
@@ -925,7 +1049,7 @@ def linux_systemd_cleanup(r: Runner) -> None:
         r.run_mutate(["systemctl", "--user", "daemon-reload"], ok_codes=(0, 1, 127))
 
     if r.args.system_services:
-        r.info(tr("section_linux_system_services", r.lang))
+        r.info(render_section(tr("section_linux_system_services", r.lang)))
         system_dirs = [Path("/etc/systemd/system"), Path("/usr/lib/systemd/system"), Path("/lib/systemd/system")]
         sys_units: set[str] = set()
         for d in system_dirs:
@@ -945,7 +1069,7 @@ def linux_systemd_cleanup(r: Runner) -> None:
 def windows_task_cleanup(r: Runner) -> None:
     if not IS_WINDOWS:
         return
-    r.info(tr("section_windows_tasks", r.lang))
+    r.info(render_section(tr("section_windows_tasks", r.lang)))
     cp = r.run_read(["schtasks", "/Query", "/FO", "CSV", "/V"], timeout=60)
     task_names: set[str] = {"\\OpenClaw Gateway", "OpenClaw Gateway"}
     if cp.returncode == 0 and cp.stdout.strip():
@@ -964,7 +1088,7 @@ def windows_task_cleanup(r: Runner) -> None:
 def windows_service_cleanup(r: Runner) -> None:
     if not IS_WINDOWS:
         return
-    r.info(tr("section_windows_services", r.lang))
+    r.info(render_section(tr("section_windows_services", r.lang)))
     ps = which("powershell") or which("powershell.exe") or which("pwsh")
     if not ps:
         return
@@ -995,7 +1119,7 @@ $items | ConvertTo-Json -Compress
 def terminate_processes(r: Runner) -> None:
     if r.args.no_kill:
         return
-    r.info(tr("section_processes", r.lang))
+    r.info(render_section(tr("section_processes", r.lang)))
     current_pid = os.getpid()
     parent_pid = os.getppid()
     if IS_LINUX:
@@ -1030,10 +1154,10 @@ def terminate_processes(r: Runner) -> None:
                 pids.append(pid)
         for pid in sorted(set(pids)):
             if r.dry_run:
-                print(tr("dry_run_terminate", r.lang, pid=pid))
+                emit(tr("dry_run_terminate", r.lang, pid=pid))
             else:
                 try:
-                    print(f"[TERM] pid={pid}")
+                    emit(f"[TERM] pid={pid}")
                     os.kill(pid, signal.SIGTERM)
                 except ProcessLookupError:
                     pass
@@ -1047,7 +1171,7 @@ def terminate_processes(r: Runner) -> None:
                 except ProcessLookupError:
                     continue
                 try:
-                    print(f"[KILL] pid={pid}")
+                    emit(f"[KILL] pid={pid}")
                     os.kill(pid, signal.SIGKILL)
                 except Exception:
                     pass
@@ -1119,7 +1243,7 @@ def discover_pnpm_global_packages() -> set[str]:
 
 
 def package_manager_cleanup(r: Runner) -> None:
-    r.info(tr("section_package_manager", r.lang))
+    r.info(render_section(tr("section_package_manager", r.lang)))
     npm_pkgs = discover_npm_global_packages()
     pnpm_pkgs = discover_pnpm_global_packages()
     if which("npm"):
@@ -1151,7 +1275,7 @@ def package_manager_cleanup(r: Runner) -> None:
 def nix_cleanup(r: Runner) -> None:
     if not which("nix") and not which("nix-env"):
         return
-    r.info(tr("section_nix", r.lang))
+    r.info(render_section(tr("section_nix", r.lang)))
     if which("nix"):
         cp = r.run_read(["nix", "profile", "list"], timeout=60)
         if cp.returncode == 0:
@@ -1179,7 +1303,7 @@ def nix_cleanup(r: Runner) -> None:
 def docker_like_cleanup(r: Runner, tool: str) -> None:
     if not which(tool):
         return
-    r.info(tr("section_docker", r.lang, tool=tool))
+    r.info(render_section(tr("section_docker", r.lang, tool=tool)))
     # Containers.
     cp = r.run_read([tool, "container", "ls", "-a", "--format", "{{.ID}}\t{{.Names}}\t{{.Image}}"], timeout=60)
     if cp.returncode == 0:
@@ -1244,7 +1368,7 @@ def package_cache_paths() -> list[Path]:
 
 
 def remove_files(r: Runner, initial_paths: list[Path], config_files: list[Path]) -> None:
-    r.info(tr("section_files", r.lang))
+    r.info(render_section(tr("section_files", r.lang)))
     # Parse configs before deleting them.
     discovered_workspaces: list[Path] = []
     discovered_managed: list[Path] = []
@@ -1312,7 +1436,7 @@ def is_subpath(child: Path, parent: Path) -> bool:
 def scan_source_repos(r: Runner) -> None:
     if not r.args.scan_source:
         return
-    r.info(tr("section_source", r.lang))
+    r.info(render_section(tr("section_source", r.lang)))
     common_roots = [
         HOME, HOME / "Desktop", HOME / "Documents", HOME / "Downloads", HOME / "Projects", HOME / "projects",
         HOME / "Code", HOME / "code", HOME / "src", HOME / "workspace", HOME / "Work", HOME / "dev",
@@ -1396,7 +1520,7 @@ def source_checkout_confirmed(p: Path) -> bool:
 def clean_shell_rc(r: Runner) -> None:
     if not r.args.clean_shell_rc or IS_WINDOWS:
         return
-    r.info(tr("section_shell_rc", r.lang))
+    r.info(render_section(tr("section_shell_rc", r.lang)))
     files = [
         HOME / ".bashrc", HOME / ".bash_profile", HOME / ".profile", HOME / ".zshrc", HOME / ".zprofile",
         HOME / ".config" / "fish" / "config.fish",
@@ -1414,13 +1538,13 @@ def clean_shell_rc(r: Runner) -> None:
         if len(new_lines) == len(lines):
             continue
         if r.dry_run:
-            print(f"[DRY-RUN] edit shell rc: {f}  # remove {len(lines)-len(new_lines)} OpenClaw-related lines")
+            emit(f"[DRY-RUN] edit shell rc: {f}  # remove {len(lines)-len(new_lines)} OpenClaw-related lines")
             continue
         backup = f.with_name(f.name + f".bak.openclaw-uninstall-{TIMESTAMP}")
         try:
             shutil.copy2(f, backup)
             f.write_text("".join(new_lines), encoding="utf-8")
-            print(f"[EDIT] {f}; backup: {backup}")
+            emit(f"[EDIT] {f}; backup: {backup}")
         except Exception as e:
             r.err(f"failed to edit {f}: {e}")
 
@@ -1428,7 +1552,7 @@ def clean_shell_rc(r: Runner) -> None:
 def clean_windows_user_env(r: Runner) -> None:
     if not IS_WINDOWS:
         return
-    r.info(tr("section_windows_user_env", r.lang))
+    r.info(render_section(tr("section_windows_user_env", r.lang)))
     ps = which("powershell") or which("powershell.exe") or which("pwsh")
     if not ps:
         return
@@ -1460,7 +1584,7 @@ $vars | ConvertTo-Json -Compress
 def clean_windows_machine_env(r: Runner) -> None:
     if not IS_WINDOWS or not r.args.clean_machine_env:
         return
-    r.info(tr("section_windows_machine_env", r.lang))
+    r.info(render_section(tr("section_windows_machine_env", r.lang)))
     ps = which("powershell") or which("powershell.exe") or which("pwsh")
     if not ps:
         return
@@ -1491,7 +1615,7 @@ $vars | ConvertTo-Json -Compress
 def clean_windows_powershell_profiles(r: Runner) -> None:
     if not IS_WINDOWS or not r.args.clean_shell_rc:
         return
-    r.info(tr("section_windows_ps_profiles", r.lang))
+    r.info(render_section(tr("section_windows_ps_profiles", r.lang)))
     docs = Path(os.environ.get("USERPROFILE", str(HOME))) / "Documents"
     files = [
         HOME / "Documents" / "PowerShell" / "Microsoft.PowerShell_profile.ps1",
@@ -1514,13 +1638,13 @@ def clean_windows_powershell_profiles(r: Runner) -> None:
         if len(new_lines) == len(lines):
             continue
         if r.dry_run:
-            print(f"[DRY-RUN] edit PowerShell profile: {f}  # remove {len(lines)-len(new_lines)} OpenClaw-related lines")
+            emit(f"[DRY-RUN] edit PowerShell profile: {f}  # remove {len(lines)-len(new_lines)} OpenClaw-related lines")
             continue
         backup = f.with_name(f.name + f".bak.openclaw-uninstall-{TIMESTAMP}")
         try:
             shutil.copy2(f, backup)
             f.write_text("".join(new_lines), encoding="utf-8")
-            print(f"[EDIT] {f}; backup: {backup}")
+            emit(f"[EDIT] {f}; backup: {backup}")
         except Exception as e:
             r.err(f"failed to edit {f}: {e}")
 
@@ -1547,7 +1671,7 @@ def reg_key_has_keyword(key: str) -> bool:
 def clean_windows_registry(r: Runner) -> None:
     if not IS_WINDOWS or not r.args.clean_registry or not which("reg.exe"):
         return
-    r.info(tr("section_windows_registry", r.lang))
+    r.info(render_section(tr("section_windows_registry", r.lang)))
     exact_keys = [
         r"HKCU\Software\OpenClaw", r"HKCU\Software\MoltBot", r"HKCU\Software\Moltbot",
         r"HKCU\Software\Clawdbot", r"HKCU\Software\ClawBot", r"HKCU\Software\Clawbot",
@@ -1618,7 +1742,7 @@ $hits | ConvertTo-Json -Compress
 def vscode_extension_cleanup(r: Runner) -> None:
     if not r.args.purge_vscode_extensions:
         return
-    r.info(tr("section_vscode", r.lang))
+    r.info(render_section(tr("section_vscode", r.lang)))
     code_bins = ["code", "code-insiders", "codium"]
     for bin_name in code_bins:
         if not which(bin_name):
@@ -1632,7 +1756,7 @@ def vscode_extension_cleanup(r: Runner) -> None:
 
 
 def final_residue_report(r: Runner) -> None:
-    r.info(tr("section_residue", r.lang))
+    r.info(render_section(tr("section_residue", r.lang)))
     suspects: list[str] = []
     # Command presence.
     for cmd in list(CLI_NAMES) + ["clawhub"]:
@@ -1646,11 +1770,11 @@ def final_residue_report(r: Runner) -> None:
             suspects.append(f"path still exists: {p}")
     if suspects:
         for s in suspects[:200]:
-            print(f"[LEFT] {s}")
+            emit(f"[LEFT] {s}")
         if len(suspects) > 200:
-            print(f"[LEFT] ... {len(suspects)-200} more")
+            emit(f"[LEFT] ... {len(suspects)-200} more")
     else:
-        print(tr("no_residue", r.lang))
+        emit(tr("no_residue", r.lang))
 
 
 def write_json_report(r: Runner, args: argparse.Namespace) -> None:
@@ -1669,31 +1793,34 @@ def write_json_report(r: Runner, args: argparse.Namespace) -> None:
     }
     p = norm_path(Path(args.report_json))
     if r.dry_run:
-        print(tr("dry_run_report", r.lang, path=p))
+        emit(tr("dry_run_report", r.lang, path=p))
         return
     try:
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        print(tr("report_written", r.lang, path=p))
+        emit(tr("report_written", r.lang, path=p))
     except Exception as e:
         r.err(tr("report_failed", r.lang, path=p, error=e))
 
 
 def main() -> int:
+    configure_console("--no-color" in sys.argv)
     args = parse_args()
     lang = args.lang
     log_fp = setup_transcript(args.log_file, lang)
     r = Runner(args)
-    print(tr("language_selected", lang))
-    print(tr("app_title", lang))
-    print(tr("platform_line", lang, platform=platform.platform(), python=sys.version.split()[0]))
     mode = tr("mode_apply", lang) if args.yes else tr("mode_dry_run", lang)
-    print(tr("mode_line", lang, mode=mode))
+    banner_lines = [
+        tr("language_selected", lang),
+        tr("platform_line", lang, platform=platform.platform(), python=sys.version.split()[0]),
+        tr("mode_line", lang, mode=mode),
+    ]
+    emit(render_banner(tr("app_title", lang), banner_lines))
     emit_privilege_hint(args, lang)
     if args.yes and not args.quarantine:
-        print(tr("permanent_delete_hint", lang))
+        emit(f"[WARN] {tr('permanent_delete_hint', lang)}")
     if args.quarantine:
-        print(tr("quarantine_root", lang, path=r.quarantine_root))
+        emit(f"[LOG] {tr('quarantine_root', lang, path=r.quarantine_root)}")
 
     initial_paths, config_files = collect_state_and_config_paths(args)
 
@@ -1717,14 +1844,14 @@ def main() -> int:
     final_residue_report(r)
     write_json_report(r, args)
 
-    print(tr("section_summary", lang))
+    emit(render_section(tr("section_summary", lang)))
     short_mode = tr("mode_apply_short", lang) if args.yes else tr("mode_dry_run_short", lang)
-    print(tr("mode_line", lang, mode=short_mode))
-    print(tr("summary_counts", lang, warnings=len(r.warned), errors=len(r.errors)))
+    emit(tr("mode_line", lang, mode=short_mode))
+    emit(tr("summary_counts", lang, warnings=len(r.warned), errors=len(r.errors)))
     if r.errors:
-        print(tr("errors_hint", lang))
+        emit(f"[ERR] {tr('errors_hint', lang)}")
     if not args.yes:
-        print(tr("dry_run_hint", lang))
+        emit(tr("dry_run_hint", lang))
     if log_fp:
         log_fp.close()
     return 1 if r.errors else 0
